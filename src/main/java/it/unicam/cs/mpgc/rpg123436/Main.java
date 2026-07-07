@@ -1,4 +1,4 @@
-package org.example;
+package it.unicam.cs.mpgc.rpg123436;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.

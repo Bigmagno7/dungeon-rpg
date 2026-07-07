@@ -17,7 +17,7 @@ javafx {
 }
 
 application {
-    mainClass = 'org.example.Main'
+    mainClass = 'it.unicam.cs.mpgc.rpg123436.Main'
 }
 
 tasks.withType(JavaCompile) {
