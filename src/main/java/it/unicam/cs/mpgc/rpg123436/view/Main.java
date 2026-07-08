@@ -1,4 +1,4 @@
-package it.unicam.cs.mpgc.rpg123436;
+package it.unicam.cs.mpgc.rpg123436.view;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -7,9 +7,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 /**
- * Punto di ingresso effettivo dell'applicazione grafica JavaFX.
- * Gestisce l'inizializzazione del ciclo di vita del gioco, della finestra (Stage)
- * e delle scene principali del Dungeon RPG.
+ * Rappresenta la 'View' nell'architettura MVC del progetto.
+ * Punto di ingresso effettivo dell'applicazione grafica JavaFX, responsabile
+ * esclusivamente della gestione e del rendering dell'interfaccia utente (finestra, scene e nodi).
  */
 public class Main extends Application {
 
