@@ -123,7 +123,6 @@ public class DungeonView extends HBox {
         mapGrid.getChildren().clear();
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
-
         int heroX = controller.getHero().getX();
         int heroY = controller.getHero().getY();
         int monsterX = controller.getMonster().getX();
@@ -168,7 +167,7 @@ public class DungeonView extends HBox {
         // 1. Sezione Eroe (Risolto il quadratino rotto su Windows)
         Text statsTitle = new Text("⚔️ STATUS EROE");
         statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.web("#00D2FF"));
-        Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
+        Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/"+ controller.getHero().getMaxHp()+"\nPosizione: [" + heroX + "," + heroY + "]");
         heroInfo.setFont(Font.font("Arial", 14)); heroInfo.setFill(Color.WHITE);
         hudPanel.getChildren().addAll(statsTitle, heroInfo);
 

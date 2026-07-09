@@ -20,7 +20,7 @@ public class GameController {
     public GameController() {
         this.map = new DungeonMap(10, 10, currentLevel);
         this.hero = new Hero("Mago", 1, 1);
-        this.hero.setHp(50);
+        this.hero.setHp(hero.getHp());
         this.monster = new Monster("Orco", 30, 6, 7, 2);
         combatLog.add("Benvenuto! Livello " + currentLevel + " - HP: 50");
     }

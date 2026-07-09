@@ -6,6 +6,7 @@ package it.unicam.cs.mpgc.rpg123436.model;
 public class Hero {
 
     private final String name;
+    private final int maxHp;
     private int hp;
     private int x;
     private int y;
@@ -16,7 +17,8 @@ public class Hero {
      */
     public Hero(String name, int startX, int startY) {
         this.name = name;
-        this.hp = 100; // Parte con 100 HP di default
+        this.maxHp=100;
+        this.hp = maxHp;
         this.x = startX;
         this.y = startY;
     }
@@ -49,5 +51,9 @@ public class Hero {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public int getMaxHp() {
+        return maxHp;
     }
 }
