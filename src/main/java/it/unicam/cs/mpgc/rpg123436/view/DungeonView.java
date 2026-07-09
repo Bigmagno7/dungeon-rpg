@@ -25,7 +25,8 @@ public class DungeonView extends HBox {
     private GridPane mapGrid;
     private VBox hudPanel;
     private VBox leftLayout; // Layout sinistro che contiene Titolo + Mappa
-    private Text topStatusText; // Il mega testo sopra la mappa
+    private Text topStatusText; // Il mega testo del livello
+    private Text monsterHpText; // AGGIUNTA: Il testo per la vita dell'orco sotto il livello
 
     private Image wallImg;
     private Image floorImg;
@@ -39,20 +40,25 @@ public class DungeonView extends HBox {
         this.controller = controller;
         this.setStyle("-fx-background-color: #0b0b0d;");
 
-        // 1. Creiamo il layout di sinistra (Titolo sopra + Mappa sotto)
-        this.leftLayout = new VBox(10);
-        this.leftLayout.setPadding(new Insets(20));
+        // 1. Creiamo il layout di sinistra (Titoli sopra + Mappa sotto)
+        this.leftLayout = new VBox(5); // Spazio ridotto per tenere tutto compatto
+        this.leftLayout.setPadding(new Insets(15));
         this.leftLayout.setAlignment(Pos.TOP_CENTER);
 
-        // Il mega testo sopra la mappa
+        // Il mega testo sopra la mappa per il Livello
         this.topStatusText = new Text();
         this.topStatusText.setFont(Font.font("Arial", FontWeight.BOLD, 28));
+
+        // Il testo dedicato alla vita dell'orco
+        this.monsterHpText = new Text();
+        this.monsterHpText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
         this.mapGrid = new GridPane();
         this.mapGrid.setHgap(1);
         this.mapGrid.setVgap(1);
 
-        this.leftLayout.getChildren().addAll(topStatusText, mapGrid);
+        // Inseriamo i titoli e poi la mappa
+        this.leftLayout.getChildren().addAll(topStatusText, monsterHpText, mapGrid);
 
         // 2. Pannello HUD di destra classico per i log
         this.hudPanel = new VBox(15);
@@ -106,17 +112,29 @@ public class DungeonView extends HBox {
 
     public void render() {
         int currentLevel = controller.getCurrentLevel();
+        int monsterHp = controller.getMonster().getHp();
 
-        // AGGIORNAMENTO DEL MEGA TESTO SOPRA LA MAPPA
+        // 1. AGGIORNAMENTO DEL MEGA TESTO DEL LIVELLO
         if (controller.isGameOver()) {
             topStatusText.setText("🚨 GAME OVER 🚨");
             topStatusText.setFill(Color.RED);
+            monsterHpText.setText(""); // Nascondi se hai perso
         } else if (controller.isGameWon()) {
             topStatusText.setText("👑 VITTORIA FINALE! 👑");
             topStatusText.setFill(Color.GREEN);
+            monsterHpText.setText(""); // Nascondi se hai vinto
         } else {
             topStatusText.setText("🏰 LIVELLO " + currentLevel);
             topStatusText.setFill(Color.web("#00D2FF"));
+
+            // AGGIORNAMENTO DELLA TABELLA/BARRA DELLA VITA DELL'ORCO
+            if (monsterHp > 0) {
+                monsterHpText.setText("👹 VITA ORCO: " + monsterHp + " HP");
+                monsterHpText.setFill(Color.CRIMSON);
+            } else {
+                monsterHpText.setText("💀 ORCO SCONFITTO (Via libera!)");
+                monsterHpText.setFill(Color.LIGHTGREEN);
+            }
         }
 
         // Render della griglia
@@ -128,7 +146,6 @@ public class DungeonView extends HBox {
         int heroY = controller.getHero().getY();
         int monsterX = controller.getMonster().getX();
         int monsterY = controller.getMonster().getY();
-        int monsterHp = controller.getMonster().getHp();
 
         // Visione: vedi fino a 2 caselle di distanza
         int visionRadius = 2;
@@ -137,16 +154,14 @@ public class DungeonView extends HBox {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
-                // Calcolo dinamico della distanza dal mago
                 int distX = Math.abs(c - heroX);
                 int distY = Math.abs(r - heroY);
                 boolean isVisible = (distX <= visionRadius && distY <= visionRadius);
 
-                // MODIFICA CORRETTA: La nebbia scatta dal livello 3 in su (3, 4, 5)
+                // La nebbia scatta dal livello 3 in su
                 if (currentLevel >= 3 && !isVisible) {
                     tileView.setImage(fogImg);
                 } else {
-                    // Altrimenti disegna lo sfondo normale scoperto
                     if (grid[r][c] == '#') {
                         tileView.setImage(wallImg);
                     } else if (grid[r][c] == 'E') {
@@ -157,7 +172,6 @@ public class DungeonView extends HBox {
                         tileView.setImage(floorImg);
                     }
 
-                    // Personaggi sopra lo sfondo scoperto
                     if (c == heroX && r == heroY) {
                         tileView.setImage(heroImg);
                     } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
@@ -172,7 +186,8 @@ public class DungeonView extends HBox {
         // HUD laterale di riepilogo
         hudPanel.getChildren().clear();
 
-        Text statsTitle = new Text("🛡️ STATUS EROE");
+        // Sistemata l'icona dello scudo che sballava su Windows
+        Text statsTitle = new Text("⚔️ STATUS EROE");
         statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.LIGHTGRAY);
 
         Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
