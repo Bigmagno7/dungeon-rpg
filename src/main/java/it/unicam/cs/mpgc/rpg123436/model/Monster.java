@@ -24,4 +24,7 @@ public class Monster {
     public int getDamage() { return damage; }
     public int getX() { return x; }
     public int getY() { return y; }
+
+    public void setX(int nextX) {
+    }
 }
