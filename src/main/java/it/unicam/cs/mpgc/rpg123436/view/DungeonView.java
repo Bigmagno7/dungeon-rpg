@@ -24,9 +24,8 @@ public class DungeonView extends HBox {
 
     private GridPane mapGrid;
     private VBox hudPanel;
-    private VBox leftLayout; // Layout sinistro che contiene Titolo + Mappa
-    private Text topStatusText; // Il mega testo del livello
-    private Text monsterHpText; // AGGIUNTA: Il testo per la vita dell'orco sotto il livello
+    private VBox leftLayout;
+    private Text topStatusText;
 
     private Image wallImg;
     private Image floorImg;
@@ -34,37 +33,32 @@ public class DungeonView extends HBox {
     private Image heartImg;
     private Image heroImg;
     private Image monsterImg;
-    private Image fogImg; // Texture per la nebbia nei livelli avanzati
+    private Image fogImg;
 
     public DungeonView(GameController controller) {
         this.controller = controller;
         this.setStyle("-fx-background-color: #0b0b0d;");
 
-        // 1. Creiamo il layout di sinistra (Titoli sopra + Mappa sotto)
-        this.leftLayout = new VBox(5); // Spazio ridotto per tenere tutto compatto
-        this.leftLayout.setPadding(new Insets(15));
+        // 1. Layout sinistro compatto (padding ridotto a 10 per non tagliare i muri sotto!)
+        this.leftLayout = new VBox(5);
+        this.leftLayout.setPadding(new Insets(10, 15, 10, 15));
         this.leftLayout.setAlignment(Pos.TOP_CENTER);
 
-        // Il mega testo sopra la mappa per il Livello
         this.topStatusText = new Text();
         this.topStatusText.setFont(Font.font("Arial", FontWeight.BOLD, 28));
-
-        // Il testo dedicato alla vita dell'orco
-        this.monsterHpText = new Text();
-        this.monsterHpText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
 
         this.mapGrid = new GridPane();
         this.mapGrid.setHgap(1);
         this.mapGrid.setVgap(1);
 
-        // Inseriamo i titoli e poi la mappa
-        this.leftLayout.getChildren().addAll(topStatusText, monsterHpText, mapGrid);
+        // Ora sopra la mappa c'è SOLO il livello gigante, niente scritte della vita dell'orco
+        this.leftLayout.getChildren().addAll(topStatusText, mapGrid);
 
-        // 2. Pannello HUD di destra classico per i log
-        this.hudPanel = new VBox(15);
+        // 2. Pannello HUD di destra
+        this.hudPanel = new VBox(12); // Spazio verticale ottimizzato
         this.hudPanel.setPrefWidth(300);
         this.hudPanel.setStyle("-fx-background-color: #141419; -fx-border-color: #2d2d38; -fx-border-width: 0 0 0 2;");
-        this.hudPanel.setPadding(new Insets(20));
+        this.hudPanel.setPadding(new Insets(15));
 
         this.getChildren().addAll(leftLayout, hudPanel);
 
@@ -97,7 +91,6 @@ public class DungeonView extends HBox {
         gc.strokeLine(12, tileSize/2.0, tileSize-12, tileSize/2.0);
         heartImg = canvasHeart.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // GENERAZIONE TEXTURE DELLA NEBBIA (Nero fiammante per oscurare la griglia)
         WritableImage imgFog = new WritableImage(tileSize, tileSize);
         for (int x = 0; x < tileSize; x++) {
             for (int y = 0; y < tileSize; y++) {
@@ -114,30 +107,19 @@ public class DungeonView extends HBox {
         int currentLevel = controller.getCurrentLevel();
         int monsterHp = controller.getMonster().getHp();
 
-        // 1. AGGIORNAMENTO DEL MEGA TESTO DEL LIVELLO
+        // Testo sopra la mappa
         if (controller.isGameOver()) {
             topStatusText.setText("🚨 GAME OVER 🚨");
             topStatusText.setFill(Color.RED);
-            monsterHpText.setText(""); // Nascondi se hai perso
         } else if (controller.isGameWon()) {
             topStatusText.setText("👑 VITTORIA FINALE! 👑");
             topStatusText.setFill(Color.GREEN);
-            monsterHpText.setText(""); // Nascondi se hai vinto
         } else {
             topStatusText.setText("🏰 LIVELLO " + currentLevel);
             topStatusText.setFill(Color.web("#00D2FF"));
-
-            // AGGIORNAMENTO DELLA TABELLA/BARRA DELLA VITA DELL'ORCO
-            if (monsterHp > 0) {
-                monsterHpText.setText("👹 VITA ORCO: " + monsterHp + " HP");
-                monsterHpText.setFill(Color.CRIMSON);
-            } else {
-                monsterHpText.setText("💀 ORCO SCONFITTO (Via libera!)");
-                monsterHpText.setFill(Color.LIGHTGREEN);
-            }
         }
 
-        // Render della griglia
+        // Render griglia mappa
         mapGrid.getChildren().clear();
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
@@ -147,7 +129,6 @@ public class DungeonView extends HBox {
         int monsterX = controller.getMonster().getX();
         int monsterY = controller.getMonster().getY();
 
-        // Visione: vedi fino a 2 caselle di distanza
         int visionRadius = 2;
 
         for (int r = 0; r < map.getRows(); r++) {
@@ -158,7 +139,6 @@ public class DungeonView extends HBox {
                 int distY = Math.abs(r - heroY);
                 boolean isVisible = (distX <= visionRadius && distY <= visionRadius);
 
-                // La nebbia scatta dal livello 3 in su
                 if (currentLevel >= 3 && !isVisible) {
                     tileView.setImage(fogImg);
                 } else {
@@ -178,25 +158,36 @@ public class DungeonView extends HBox {
                         tileView.setImage(monsterImg);
                     }
                 }
-
                 mapGrid.add(tileView, c, r);
             }
         }
 
-        // HUD laterale di riepilogo
+        // AGGIORNAMENTO HUD LATERALE (TUTTO SULLA DESTRA)
         hudPanel.getChildren().clear();
 
-        // Sistemata l'icona dello scudo che sballava su Windows
+        // 1. Sezione Eroe (Risolto il quadratino rotto su Windows)
         Text statsTitle = new Text("⚔️ STATUS EROE");
-        statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.LIGHTGRAY);
-
+        statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.web("#00D2FF"));
         Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
         heroInfo.setFont(Font.font("Arial", 14)); heroInfo.setFill(Color.WHITE);
+        hudPanel.getChildren().addAll(statsTitle, heroInfo);
 
+        // 2. Sezione Mostro inserita stabilmente a DESTRA!
+        Text monsterTitle = new Text("\n👹 STATUS MOSTRO");
+        monsterTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); monsterTitle.setFill(Color.CRIMSON);
+
+        int maxMonsterHp = (currentLevel == 1) ? 30 : (10 + (currentLevel * 10));
+
+        String monsterText = monsterHp > 0 ? "HP: " + monsterHp + " / " + maxMonsterHp : "HP: 0 💀 (Sconfitto!)";
+        Text monsterInfo = new Text(monsterText);
+        monsterInfo.setFont(Font.font("Arial", 14));
+        monsterInfo.setFill(monsterHp > 0 ? Color.WHITE : Color.LIGHTGREEN);
+        hudPanel.getChildren().addAll(monsterTitle, monsterInfo);
+
+        // 3. Diario di gioco
         Text logTitle = new Text("\n📜 DIARIO DI GIOCO");
         logTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); logTitle.setFill(Color.LIGHTGRAY);
-
-        hudPanel.getChildren().addAll(statsTitle, heroInfo, logTitle);
+        hudPanel.getChildren().add(logTitle);
 
         for (String log : controller.getCombatLog()) {
             Text logLine = new Text(log);

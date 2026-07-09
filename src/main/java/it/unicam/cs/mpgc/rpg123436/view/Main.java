@@ -18,7 +18,7 @@ public class Main extends Application {
         // 2. Creiamo la View principale (che ora gestirà sia mappa che statistiche!)
         DungeonView dungeonView = new DungeonView(controller);
 
-        Scene scene = new Scene(dungeonView, 760, 460);
+        Scene scene = new Scene(dungeonView, 750, 520);
 
         // 3. Input handler standard, senza strani override
         InputHandler inputHandler = new InputHandler(controller, dungeonView);
