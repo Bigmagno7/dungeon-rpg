@@ -31,27 +31,26 @@ public class GameController {
         int newX = hero.getX() + deltaX;
         int newY = hero.getY() + deltaY;
 
-        // Blocco sui muri
         if (map.getGrid()[newY][newX] == '#') return false;
 
-        // Se vai contro il mostro vivo: COMBATTIMENTO (l'eroe non avanza!)
-        if (monster.getHp() > 0 && newX == monster.getX() && newY == monster.getY()) {
+        // 1. SE IL MOSTRO È GIÀ SOPRA DI TE O NELLA CASELLA DOVE VAI -> SI COMBATTE!
+        if (monster.getHp() > 0 && ((newX == monster.getX() && newY == monster.getY()) || (hero.getX() == monster.getX() && hero.getY() == monster.getY()))) {
             executeCombatTurn();
             return true;
         }
 
-        // Muove l'eroe solo se la casella è calpestabile
+        // Muove l'eroe
         hero.setX(newX);
         hero.setY(newY);
 
-        // Controllo Medikit
+        // Controllo medikit
         if (map.getGrid()[newY][newX] == 'H') {
             hero.setHp(Math.min(50, hero.getHp() + 5));
             map.getGrid()[newY][newX] = '.';
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
 
-        // Controllo Porta
+        // Controllo porta
         if (map.getGrid()[newY][newX] == 'E') {
             if (currentLevel == 5) {
                 isGameWon = true;
@@ -62,9 +61,10 @@ public class GameController {
             return true;
         }
 
-        // Turno del mostro intelligente (solo se vivo)
+        // Turno del mostro
         if (monster.getHp() > 0 && !isGameOver && !isGameWon) {
             moveMonsterTowardsHero();
+            // Se il mostro ti raggiunge, ti attacca e SI FERMA, non ti cammina sopra!
             if (monster.getX() == hero.getX() && monster.getY() == hero.getY()) {
                 executeMonsterAttack();
             }
@@ -114,18 +114,18 @@ public class GameController {
         hero.setX(1);
         hero.setY(1);
 
-        // HP crescenti per i livelli
-        int newHp = 10 + (currentLevel * 10); // Liv 2 = 30 HP, Liv 3 = 40 HP...
-        int newDmg = 4 + currentLevel;
+        int newHp = 20 + (currentLevel * 5);
+        int newDmg = 3 + currentLevel;
 
-        // Spawn sicuro per non nascere incastrato
-        int spawnX = 7; int spawnY = 7;
-        if (currentLevel == 2) { spawnX = 7; spawnY = 3; }
-        else if (currentLevel == 3) { spawnX = 6; spawnY = 2; }
-        else if (currentLevel == 4) { spawnX = 5; spawnY = 5; }
-        else if (currentLevel == 5) { spawnX = 4; spawnY = 5; }
+        // POSIZIONI DI SPAWN AGGIORNATE: Tutti i mostri nascono nell'angolo opposto [8, 8] o [8, 2] fisse, lontani da te!
+        int spawnX = 8;
+        int spawnY = 8;
+        if (currentLevel == 2) { spawnX = 8; spawnY = 2; }
+        else if (currentLevel == 3) { spawnX = 8; spawnY = 7; }
+        else if (currentLevel == 4) { spawnX = 2; spawnY = 8; }
 
         this.monster = new Monster("Orco Lvl " + currentLevel, newHp, newDmg, spawnX, spawnY);
+        logMessage("👹 Apparso " + monster.getType() + " con " + newHp + " HP!");
     }
 
     public void moveMonsterTowardsHero() {
