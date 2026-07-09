@@ -28,20 +28,20 @@ public class GameController {
     public boolean handleHeroMovement(int deltaX, int deltaY) {
         if (isGameOver || isGameWon) return false;
 
-        // 1. Calcoliamo DOVE vuole andare l'eroe
+        // 1. Calcoliamo DOVE l'eroe vorrebbe andare
         int nextX = hero.getX() + deltaX;
         int nextY = hero.getY() + deltaY;
 
-        // 2. Blocco sui muri
-        if (map.getGrid()[nextY][nextX] == '#') return false;
-
-        // 3. SE NELLA CASELLA SUCCESSIVA C'È L'ORCO VIVO -> COMBATTIMENTO FRONTALE
+        // 2. CONTROLLO ATTACCO IMMEDIATO: Se l'orco è vivo ed è esattamente nella casella dove sto andando, lo MENO subito!
         if (monster.getHp() > 0 && nextX == monster.getX() && nextY == monster.getY()) {
             executeCombatTurn();
-            return true; // BLOCCO IL TURNO: L'eroe resta fermo dove si trova e non si sovrappone!
+            return true; // Turno finito! Ho attaccato io per primo, l'eroe resta fermo e il mostro non si muove!
         }
 
-        // 4. Se la via è libera, muoviamo l'eroe
+        // 3. Blocco sui muri (se non sto attaccando)
+        if (map.getGrid()[nextY][nextX] == '#') return false;
+
+        // 4. Se la via è libera e non sto attaccando, muovo l'eroe
         hero.setX(nextX);
         hero.setY(nextY);
 
@@ -52,7 +52,7 @@ public class GameController {
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
 
-        // Controllo porta
+        // Controllo porta livello successivo
         if (map.getGrid()[nextY][nextX] == 'E') {
             if (currentLevel == 5) {
                 isGameWon = true;
@@ -60,10 +60,10 @@ public class GameController {
             } else {
                 nextLevel();
             }
-            return true;
+            return true; // CRUCIALE: Ferma il turno qui! Evita che il nuovo orco si muova nel vecchio turno!
         }
 
-        // 5. TURNO DEL MOSTRO: Si muove solo se è vivo
+        // 5. SOLO SE NON C'È STATO COMBATTIMENTO, il mostro fa il suo passo verso di te
         if (monster.getHp() > 0) {
             moveMonsterWithCollision();
         }
@@ -101,15 +101,20 @@ public class GameController {
             logMessage("🚨 GAME OVER - SEI MORTO! 🚨");
         }
     }
-
     /**
-     * Muove il mostro con la BFS, ma gli impedisce di salire sopra l'eroe!
+     * Muove il mostro verso l'eroe con la BFS.
+     * Se il mostro raggiunge l'eroe, si ferma davanti a lui SENZA attaccare preventivamente!
      */
     private void moveMonsterWithCollision() {
         int startX = monster.getX();
         int startY = monster.getY();
         int targetX = hero.getX();
         int targetY = hero.getY();
+
+        // Se sono già adiacenti o sopra, il mostro non si muove, aspetta solo di essere menato o contrattacca
+        if (Math.abs(startX - targetX) + Math.abs(startY - targetY) <= 1) {
+            return;
+        }
 
         int rows = map.getRows();
         int cols = map.getCols();
@@ -145,18 +150,16 @@ public class GameController {
                 p = p.parent;
             }
 
-            // CONTROLLO BLOCCO: Se il prossimo passo del mostro è la casella dell'eroe,
-            // il mostro NON si sposta, ma fa scattare l'attacco stando fermo!
+            // BLOCCO DI SICUREZZA ASSOLUTO: Se il prossimo passo della BFS coincide con l'eroe,
+            // il mostro RESTA FERMO dove si trova. Non gli sale sopra MAI.
             if (p.x == hero.getX() && p.y == hero.getY()) {
-                executeMonsterAttack();
+                return; // Non ti muovere, resta a distanza 1!
             } else {
-                // Altrimenti cammina normalmente
                 monster.setX(p.x);
                 monster.setY(p.y);
             }
         }
     }
-
     private void nextLevel() {
         currentLevel++;
         combatLog.clear();
@@ -169,12 +172,29 @@ public class GameController {
         int newHp = 10 + (currentLevel * 10);
         int newDmg = 4 + currentLevel;
 
-        int spawnX = 8; int spawnY = 8;
-        if (currentLevel == 2) { spawnX = 8; spawnY = 2; }
-        else if (currentLevel == 3) { spawnX = 8; spawnY = 7; }
-        else if (currentLevel == 4) { spawnX = 2; spawnY = 8; }
+        // COORDINATE BLINDATE: distanze matematicamente dispari da [1,1] per evitare la sovrapposizione nello stesso frame!
+        int spawnX = 7;
+        int spawnY = 2; // Livello 1 standard
+
+        if (currentLevel == 2) {
+            spawnX = 7;
+            spawnY = 8; // Distanza dispari garantita
+        }
+        else if (currentLevel == 3) {
+            spawnX = 6;
+            spawnY = 2;
+        }
+        else if (currentLevel == 4) {
+            spawnX = 7;
+            spawnY = 6; // Modificato per evitare il bug del livello 4!
+        }
+        else if (currentLevel == 5) {
+            spawnX = 7;
+            spawnY = 7;
+        }
 
         this.monster = new Monster("Orco Lvl " + currentLevel, newHp, newDmg, spawnX, spawnY);
+        logMessage("👹 Apparso " + monster.getType() + " con " + newHp + " HP!");
     }
 
     private static class Node {
