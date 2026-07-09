@@ -38,33 +38,62 @@ public class GameController {
         hero.setY(newY);
 
         // FORZIAMO il movimento random del mostro qui dentro
-        moveMonsterRandom();
+        moveMonsterTowardsHero();
 
         return true;
     }
 
-    public void moveMonsterRandom() {
-        int deltaX = rand.nextInt(3) - 1; // -1, 0, o 1
-        int deltaY = rand.nextInt(3) - 1; // -1, 0, o 1
+    /**
+     * Muove il mostro verso l'eroe in modo fluido e intelligente (solo Nord, Sud, Est, Ovest).
+     */
+    public void moveMonsterTowardsHero() {
+        int monsterX = monster.getX();
+        int monsterY = monster.getY();
+        int heroX = hero.getX();
+        int heroY = hero.getY();
 
-        // Evita movimenti diagonali fulminei
-        if (deltaX != 0 && deltaY != 0) {
-            deltaY = 0;
+        int deltaX = 0;
+        int deltaY = 0;
+
+        // Scegliamo se muoverci prima su X o su Y in base a dove la distanza è maggiore
+        if (Math.abs(heroX - monsterX) > Math.abs(heroY - monsterY)) {
+            // Conviene muoversi in orizzontale
+            deltaX = (heroX > monsterX) ? 1 : -1;
+        } else {
+            // Conviene muoversi in verticale
+            deltaY = (heroY > monsterY) ? 1 : -1;
         }
 
-        int nextX = monster.getX() + deltaX;
-        int nextY = monster.getY() + deltaY;
+        int nextX = monsterX + deltaX;
+        int nextY = monsterY + deltaY;
 
-        // Controlla che non esca dai bordi e non colpisca muri
+        // CONTROLLO COLLISIONE: Se la casella verso l'eroe è libera, si muove lì
         if (nextY >= 0 && nextY < map.getRows() && nextX >= 0 && nextX < map.getCols()) {
             if (map.getGrid()[nextY][nextX] != '#') {
                 monster.setX(nextX);
                 monster.setY(nextY);
-                System.out.println("LOG -> Mostro si è mosso a: X=" + nextX + " Y=" + nextY);
                 return;
             }
         }
-        System.out.println("LOG -> Il mostro ha provato a muoversi ma ha sbattuto contro un muro!");
+
+        // SE LA VIA PRINCIPALE È BLOCCATA DA UN MURO, prova l'altra direzione (Aggiramento)
+        if (deltaX != 0) { // Stava provando ad andare in orizzontale
+            deltaY = (heroY > monsterY) ? 1 : -1;
+            deltaX = 0;
+        } else { // Stava provando ad andare in verticale
+            deltaX = (heroX > monsterX) ? 1 : -1;
+            deltaY = 0;
+        }
+
+        nextX = monsterX + deltaX;
+        nextY = monsterY + deltaY;
+
+        if (nextY >= 0 && nextY < map.getRows() && nextX >= 0 && nextX < map.getCols()) {
+            if (map.getGrid()[nextY][nextX] != '#') {
+                monster.setX(nextX);
+                monster.setY(nextY);
+            }
+        }
     }
 
     public DungeonMap getMap() { return this.map; }
