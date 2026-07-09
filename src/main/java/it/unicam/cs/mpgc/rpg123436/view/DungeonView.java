@@ -3,64 +3,60 @@ package it.unicam.cs.mpgc.rpg123436.view;
 import it.unicam.cs.mpgc.rpg123436.controller.GameController;
 import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
 import javafx.scene.layout.GridPane;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 /**
  * Gestisce il rendering grafico della mappa del dungeon su una griglia JavaFX.
- * Legge i dati dal Model tramite il GameController e li trasforma in elementi visivi.
+ * Utilizza forme geometriche colorate stabili per garantire la massima compatibilità.
  */
 public class DungeonView extends GridPane {
 
     private final GameController controller;
-    private final int tileSize = 40; // Dimensione in pixel di ogni cella della griglia
+    private final int tileSize = 40; // Dimensione in pixel di ogni cella
 
     public DungeonView(GameController controller) {
         this.controller = controller;
-        // Spaziatura tra le celle della griglia
+        // Spaziatura tra i quadratini
         this.setHgap(2);
         this.setVgap(2);
-        this.setStyle("-fx-background-color: #1a1a1a; -fx-padding: 10;"); // Sfondo scuro da dungeon
+        this.setStyle("-fx-background-color: #111111; -fx-padding: 20;"); // Sfondo finestra scuro
 
         render();
     }
 
     /**
-     * Disegna e aggiorna l'intera griglia di gioco.
+     * Disegna e aggiorna l'intera griglia di gioco basandosi sulle forme geometriche.
      */
     public void render() {
-        // Puliamo la griglia prima di ridisegnare per evitare sovrapposizioni
         this.getChildren().clear();
 
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
 
-        // Ciclo for per scorrere tutta la matrice della mappa
         for (int r = 0; r < map.getRows(); r++) {
             for (int c = 0; c < map.getCols(); c++) {
-                String element = "."; // Di base è pavimento
 
-                // 1. Controlliamo cosa c'è nella matrice del Model
+                // Creiamo un quadratino della dimensione scelta
+                Rectangle tile = new Rectangle(tileSize, tileSize);
+
+                // 1. Colore di base (Muro o Pavimento)
                 if (grid[r][c] == '#') {
-                    element = "🧱"; // Muro
+                    tile.setFill(Color.web("#555555")); // Grigio scuro per i muri
                 } else {
-                    element = "⬛"; // Pavimento calpestabile vuoto
+                    tile.setFill(Color.web("#222222")); // Grigio molto scuro per il pavimento calpestabile
                 }
 
-                // 2. Controlliamo se in questa coordinata c'è l'Eroe
+                // 2. Sovrascriviamo il colore se c'è l'Eroe
                 if (c == controller.getHero().getX() && r == controller.getHero().getY()) {
-                    element = "🧝‍♂️"; // Eroe
+                    tile.setFill(Color.DODGERBLUE); // Blu acceso per l'Eroe
                 }
-                // 3. Controlliamo se c'è il Mostro (e se è ancora vivo)
+                // 3. Sovrascriviamo il colore se c'è il Mostro vivo
                 else if (c == controller.getMonster().getX() && r == controller.getMonster().getY() && controller.getMonster().getHp() > 0) {
-                    element = "👹"; // Mostro
+                    tile.setFill(Color.RED); // Rosso acceso per il Mostro
                 }
 
-                // Creiamo il nodo di testo per JavaFX
-                Text tile = new Text(element);
-                tile.setFont(new Font(tileSize - 10)); // Adattiamo la dimensione dell'emoji
-
-                // Aggiungiamo l'elemento alla griglia di JavaFX (colonna c, riga r)
+                // Aggiungiamo il quadratino alla griglia (colonna c, riga r)
                 this.add(tile, c, r);
             }
         }
