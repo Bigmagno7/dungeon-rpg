@@ -10,10 +10,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 
-/**
- * Gestisce il rendering grafico del dungeon auto-generando le texture in memoria
- * per evitare l'uso di file PNG esterni e garantire la massima portabilità.
- */
 public class DungeonView extends GridPane {
 
     private final GameController controller;
@@ -27,21 +23,15 @@ public class DungeonView extends GridPane {
     public DungeonView(GameController controller) {
         this.controller = controller;
         this.setStyle("-fx-background-color: #0b0b0d; -fx-padding: 20;");
-        this.setHgap(1); // Griglia compatta da vero gioco retro
+        this.setHgap(1);
         this.setVgap(1);
 
         generateTextures();
         render();
     }
 
-    /**
-     * Disegna e genera le immagini in memoria usando un Canvas di JavaFX.
-     */
-    /**
-     * Disegna i muri in memoria e carica l'eroe e il mostro direttamente dal web.
-     */
     private void generateTextures() {
-        // 1. TEXTURE MURO (Mattoni di pietra sfumati - Rimane questa che andava bene!)
+        // Texture Muro
         Canvas canvasWall = new Canvas(tileSize, tileSize);
         GraphicsContext gc = canvasWall.getGraphicsContext2D();
         gc.setFill(Color.web("#3A3D40"));
@@ -54,7 +44,7 @@ public class DungeonView extends GridPane {
         gc.strokeLine(tileSize / 4.0, tileSize / 2.0, tileSize / 4.0, tileSize);
         wallImg = canvasWall.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // 2. TEXTURE PAVIMENTO (Lastre di pietra scura)
+        // Texture Pavimento
         Canvas canvasFloor = new Canvas(tileSize, tileSize);
         gc = canvasFloor.getGraphicsContext2D();
         gc.setFill(Color.web("#1E2022"));
@@ -64,33 +54,47 @@ public class DungeonView extends GridPane {
         gc.strokeRect(0, 0, tileSize, tileSize);
         floorImg = canvasFloor.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // 3. SPRITE EROE (Caricato dal web - Icona Mago RPG)
+        // Sprite Eroe (Mago)
         String heroUrl = "https://img.icons8.com/color/40/wizard.png";
         heroImg = new Image(heroUrl, tileSize, tileSize, true, true);
 
-        // 4. SPRITE MOSTRO (Caricato dal web - Icona Orco/Goblin)
+        // Sprite Mostro (Orco)
         String monsterUrl = "https://img.icons8.com/color/40/orc.png";
         monsterImg = new Image(monsterUrl, tileSize, tileSize, true, true);
     }
 
+    /**
+     * Ridisegna l'intera griglia leggendo le posizioni AGGIORNATE dei personaggi.
+     */
     public void render() {
         this.getChildren().clear();
+
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
+
+        // Recuperiamo le posizioni correnti direttamente dal controller a ogni ciclo
+        int heroX = controller.getHero().getX();
+        int heroY = controller.getHero().getY();
+        int monsterX = controller.getMonster().getX();
+        int monsterY = controller.getMonster().getY();
 
         for (int r = 0; r < map.getRows(); r++) {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
+                // 1. Disegna lo sfondo (Muro o Pavimento)
                 if (grid[r][c] == '#') {
                     tileView.setImage(wallImg);
                 } else {
                     tileView.setImage(floorImg);
                 }
 
-                if (c == controller.getHero().getX() && r == controller.getHero().getY()) {
+                // 2. Controllo Eroe (c è la X/Colonna, r è la Y/Riga)
+                if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
-                } else if (c == controller.getMonster().getX() && r == controller.getMonster().getY() && controller.getMonster().getHp() > 0) {
+                }
+                // 3. Controllo Mostro (confronto dinamico)
+                else if (c == monsterX && r == monsterY) {
                     tileView.setImage(monsterImg);
                 }
 

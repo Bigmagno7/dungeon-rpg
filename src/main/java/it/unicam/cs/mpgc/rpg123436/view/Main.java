@@ -6,40 +6,30 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-/**
- * Rappresenta la 'View' nell'architettura MVC del progetto.
- * Punto di ingresso dell'applicazione grafica JavaFX, responsabile del rendering complessivo.
- */
 public class Main extends Application {
-
-    private GameController controller;
-    private DungeonView dungeonView;
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Easy Dungeon RPG");
+        primaryStage.setTitle("Easy Dungeon RPG - Sincronizzato");
 
-        // 1. Inizializziamo il Controller (che a sua volta crea il Model)
-        this.controller = new GameController();
+        // 1. CREIAMO L'UNICA ISTANZA DEL CONTROLLER
+        GameController controller = new GameController();
 
-        // 2. Creiamo la View della mappa passandogli il controller come regista
-        this.dungeonView = new DungeonView(controller);
+        // 2. PASSIAMO QUESTA SPECIFICA ISTANZA ALLA VIEW
+        DungeonView dungeonView = new DungeonView(controller);
 
-        // 3. Impostiamo la scena inserendo la griglia del dungeon appena creata
-        // Dimensioni della finestra (800x600) adatte a contenere comodamente la griglia
-        // Sotto a dove crei la Scene:
-        Scene scene = new Scene(dungeonView, 800, 600);
+        // 3. CREIAMO LA SCENA
+        Scene scene = new Scene(dungeonView, 450, 450);
 
-// AGGIUNGI QUESTE DUE RIGHE QUI:
+        // 4. PASSIAMO LA STESSA ISTANZA ALL'INPUT HANDLER
         InputHandler inputHandler = new InputHandler(controller, dungeonView);
         inputHandler.attachToScene(scene);
 
         primaryStage.setScene(scene);
-        primaryStage.show(); // Mostra la finestra a schermo
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
-
 }

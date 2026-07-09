@@ -3,90 +3,71 @@ package it.unicam.cs.mpgc.rpg123436.controller;
 import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
 import it.unicam.cs.mpgc.rpg123436.model.Hero;
 import it.unicam.cs.mpgc.rpg123436.model.Monster;
+import java.util.Random;
 
-/**
- * Fa da ponte (Controller) tra il Model (Dati) e la View (Grafica).
- * Gestisce i turni di movimento dell'eroe e l'intelligenza artificiale del mostro.
- */
 public class GameController {
 
     private final DungeonMap map;
     private final Hero hero;
     private final Monster monster;
+    private final Random rand = new Random();
 
     public GameController() {
-        // Inizializziamo il mondo di gioco (Mappa 10x10, Eroe e un Mostro)
         this.map = new DungeonMap(10, 10);
-
-        // Passiamo solo: Nome, X iniziale, Y iniziale
         this.hero = new Hero("Cavaliere", 1, 1);
-
-        // Passiamo: Tipo, HP, Danno, X iniziale, Y iniziale (ne mancava uno!)
-        this.monster = new Monster("Goblin", 30, 5, 2, 2);
+        // Lo spawniamo a (7, 2) così è sicuramente sul pavimento libero
+        this.monster = new Monster("Goblin", 30, 5, 7, 2);
     }
 
-    /**
-     * Gestisce il movimento dell'eroe. Se si muove, subito dopo fa muovere il mostro.
-     */
     public boolean handleHeroMovement(int deltaX, int deltaY) {
         int newX = hero.getX() + deltaX;
         int newY = hero.getY() + deltaY;
 
-        // Controlliamo se la cella d'arrivo è calpestabile (non è un muro '#')
-        if (map.getGrid()[newY][newX] != '#') {
-            hero.setX(newX);
-            hero.setY(newY);
-
-            // SISTEMA A TURNI: subito dopo l'eroe, si muove l'orco!
-            moveMonsterTowardsHero();
-
-            return true;
+        // Blocco sui muri esterni o interni
+        if (map.getGrid()[newY][newX] == '#') {
+            return false;
         }
-        return false;
+
+        // Blocco se va sopra il mostro
+        if (newX == monster.getX() && newY == monster.getY()) {
+            System.out.println("LOG -> collisione con il mostro!");
+            return false;
+        }
+
+        hero.setX(newX);
+        hero.setY(newY);
+
+        // FORZIAMO il movimento random del mostro qui dentro
+        moveMonsterRandom();
+
+        return true;
     }
 
-    /**
-     * Intelligenza artificiale del mostro: calcola la posizione dell'eroe e lo insegue.
-     */
-    public void moveMonsterTowardsHero() {
-        // Se il mostro è morto, non fa nulla
-        if (monster.getHp() <= 0) {
-            return;
+    public void moveMonsterRandom() {
+        int deltaX = rand.nextInt(3) - 1; // -1, 0, o 1
+        int deltaY = rand.nextInt(3) - 1; // -1, 0, o 1
+
+        // Evita movimenti diagonali fulminei
+        if (deltaX != 0 && deltaY != 0) {
+            deltaY = 0;
         }
 
-        int monsterX = monster.getX();
-        int monsterY = monster.getY();
-        int heroX = hero.getX();
-        int heroY = hero.getY();
+        int nextX = monster.getX() + deltaX;
+        int nextY = monster.getY() + deltaY;
 
-        int nextX = monsterX;
-        int nextY = monsterY;
-
-        // Inseguimento sull'asse X
-        if (monsterX < heroX) {
-            nextX++;
-        } else if (monsterX > heroX) {
-            nextX--;
+        // Controlla che non esca dai bordi e non colpisca muri
+        if (nextY >= 0 && nextY < map.getRows() && nextX >= 0 && nextX < map.getCols()) {
+            if (map.getGrid()[nextY][nextX] != '#') {
+                monster.setX(nextX);
+                monster.setY(nextY);
+                System.out.println("LOG -> Mostro si è mosso a: X=" + nextX + " Y=" + nextY);
+                return;
+            }
         }
-
-        // Inseguimento sull'asse Y
-        if (monsterY < heroY) {
-            nextY++;
-        } else if (monsterY > heroY) {
-            nextY--;
-        }
-
-        // Muoviamo l'orco solo se la casella di destinazione non è un muro
-        if (map.getGrid()[monsterY][nextX] != '#') {
-            monster.setX(nextX);
-        }
-        if (map.getGrid()[nextY][monster.getX()] != '#') {
-            monster.setY(nextY);
-        }
+        System.out.println("LOG -> Il mostro ha provato a muoversi ma ha sbattuto contro un muro!");
     }
 
-    // Metodi Getter per dare i dati alla View
-    public DungeonMap getMap() { return map; }
-    public Hero getHero() { return hero; }
-    public Monster getMonster() { return monster; }
+    public DungeonMap getMap() { return this.map; }
+    public Hero getHero() { return this.hero; }
+    public Monster getMonster() { return this.monster; }
 }

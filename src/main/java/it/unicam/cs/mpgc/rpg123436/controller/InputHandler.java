@@ -4,9 +4,6 @@ import it.unicam.cs.mpgc.rpg123436.view.DungeonView;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 
-/**
- * Gestisce gli input della tastiera (W,A,S,D / Frecce) e aggiorna la View.
- */
 public class InputHandler {
 
     private final GameController gameController;
@@ -17,9 +14,6 @@ public class InputHandler {
         this.dungeonView = dungeonView;
     }
 
-    /**
-     * Collega l'ascoltatore dei tasti alla scena di gioco.
-     */
     public void attachToScene(Scene scene) {
         scene.setOnKeyPressed(this::handleKeyPressed);
     }
@@ -30,31 +24,21 @@ public class InputHandler {
 
         switch (event.getCode()) {
             case W:
-            case UP:
-                deltaY = -1; // Su
-                break;
+            case UP:    deltaY = -1; break;
             case S:
-            case DOWN:
-                deltaY = 1;  // Giù
-                break;
+            case DOWN:  deltaY = 1;  break;
             case A:
-            case LEFT:
-                deltaX = -1; // Sinistra
-                break;
+            case LEFT:  deltaX = -1; break;
             case D:
-            case RIGHT:
-                deltaX = 1;  // Destra
-                break;
-            default:
-                return; // Ignora gli altri tasti
+            case RIGHT: deltaX = 1;  break;
+            default: return;
         }
 
-        // Muoviamo l'eroe sul Model tramite il GameController
-        boolean moved = gameController.handleHeroMovement(deltaX, deltaY);
+        // 1. Muove l'eroe ed esegue il turno del mostro
+        gameController.handleHeroMovement(deltaX, deltaY);
 
-        // Se si è mosso, ridisegniamo la mappa con la nuova posizione!
-        if (moved) {
-            dungeonView.render();
-        }
+        // 2. FORZA IL RENDER COMPLETO DELLA MAPPA
+        System.out.println("LOG -> Richiesto aggiornamento grafico della mappa");
+        dungeonView.render();
     }
 }
