@@ -1,6 +1,7 @@
 package it.unicam.cs.mpgc.rpg123436.view;
 
 import it.unicam.cs.mpgc.rpg123436.controller.GameController;
+import it.unicam.cs.mpgc.rpg123436.controller.InputHandler;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -26,7 +27,12 @@ public class Main extends Application {
 
         // 3. Impostiamo la scena inserendo la griglia del dungeon appena creata
         // Dimensioni della finestra (800x600) adatte a contenere comodamente la griglia
+        // Sotto a dove crei la Scene:
         Scene scene = new Scene(dungeonView, 800, 600);
+
+// AGGIUNGI QUESTE DUE RIGHE QUI:
+        InputHandler inputHandler = new InputHandler(controller, dungeonView);
+        inputHandler.attachToScene(scene);
 
         primaryStage.setScene(scene);
         primaryStage.show(); // Mostra la finestra a schermo
@@ -35,4 +41,5 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
 }
