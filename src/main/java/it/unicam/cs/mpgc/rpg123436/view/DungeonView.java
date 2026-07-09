@@ -64,8 +64,8 @@ public class DungeonView extends GridPane {
         gc.strokeRect(0, 0, tileSize, tileSize);
         floorImg = canvasFloor.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // 3. SPRITE EROE (Caricato dal web - Icona Cavaliere RPG)
-        String heroUrl = "https://img.icons8.com/color/40/knight-helmet.png";
+        // 3. SPRITE EROE (Caricato dal web - Icona Mago RPG)
+        String heroUrl = "https://img.icons8.com/color/40/wizard.png";
         heroImg = new Image(heroUrl, tileSize, tileSize, true, true);
 
         // 4. SPRITE MOSTRO (Caricato dal web - Icona Orco/Goblin)
