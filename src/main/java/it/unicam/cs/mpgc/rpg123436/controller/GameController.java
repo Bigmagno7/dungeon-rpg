@@ -8,40 +8,54 @@ import java.util.List;
 
 public class GameController {
 
-    private final DungeonMap map;
+    private DungeonMap map;
     private final Hero hero;
-    private final Monster monster;
-    // Lista di stringhe per memorizzare i messaggi di combattimento da mostrare nell'HUD
+    private Monster monster;
     private final List<String> combatLog = new ArrayList<>();
+
+    private int currentLevel = 1;
+    private boolean isGameOver = false;
 
     public GameController() {
         this.map = new DungeonMap(10, 10);
         this.hero = new Hero("Mago", 1, 1);
+        // Il mostro parte in una stanza del labirinto
         this.monster = new Monster("Orco", 30, 8, 7, 2);
-        combatLog.add("Benvenuto nel Dungeon! Trova l'Orco.");
+        combatLog.add("Benvenuto nel Labirinto! Livello " + currentLevel);
     }
 
     public boolean handleHeroMovement(int deltaX, int deltaY) {
+        // Se è Game Over, i tasti non fanno muovere nessuno!
+        if (isGameOver) return false;
+
         int newX = hero.getX() + deltaX;
         int newY = hero.getY() + deltaY;
 
+        // Blocco sui muri
         if (map.getGrid()[newY][newX] == '#') {
             return false;
         }
 
-        // SE L'EROE VA SOPRA IL MOSTRO -> PARTE IL COMBATTIMENTO!
+        // SE L'EROE VA SOPRA IL MOSTRO VIVO -> COMBATTIMENTO
         if (monster.getHp() > 0 && newX == monster.getX() && newY == monster.getY()) {
             executeCombatTurn();
             return true;
         }
 
+        // Muoviamo l'eroe
         hero.setX(newX);
         hero.setY(newY);
 
-        // Se il mostro è vivo, si muove dopo il passo dell'eroe
-        if (monster.getHp() > 0) {
+        // CONTROLLO USCITA: Se l'eroe va sulla porta 'E'
+        if (map.getGrid()[newY][newX] == 'E') {
+            nextLevel();
+            return true;
+        }
+
+        // Turno del Mostro (solo se è vivo ed l'eroe non è morto)
+        if (monster.getHp() > 0 && !isGameOver) {
             moveMonsterTowardsHero();
-            // Controlliamo se muovendosi il mostro ha raggiunto l'eroe per attaccarlo
+            // Se il mostro raggiunge l'eroe dopo essersi mosso, lo attacca
             if (monster.getX() == hero.getX() && monster.getY() == hero.getY()) {
                 executeMonsterAttack();
             }
@@ -51,26 +65,53 @@ public class GameController {
     }
 
     private void executeCombatTurn() {
-        // 1. L'eroe attacca il mostro (danno fisso di esempio: 10)
+        // L'eroe fa 10 danni
         int heroDamage = 10;
         monster.setHp(monster.getHp() - heroDamage);
         logMessage("⚔️ Hai colpito l'Orco per " + heroDamage + " danni!");
 
-        // 2. Controlliamo se il mostro è morto
         if (monster.getHp() <= 0) {
-            logMessage("💀 L'Orco è stato sconfitto! Vittoria!");
+            logMessage("💀 Orco sconfitto! La porta per il prossimo livello è aperta!");
             return;
         }
 
-        // 3. Se il mostro è ancora vivo, contrattacca immediatamente
+        // Contrattacco del mostro
         executeMonsterAttack();
     }
 
     private void executeMonsterAttack() {
         int monsterDamage = monster.getDamage();
-        // Nota: Assicurati che la tua classe Hero abbia un metodo setHp o un modo per gestire la vita.
-        // Se non ce l'ha ancora, stampiamo solo il log per evitare crash.
-        logMessage("💥 L'Orco ti contrattacca e ti fa " + monsterDamage + " danni!");
+        hero.setHp(hero.getHp() - monsterDamage);
+        logMessage("💥 L'Orco ti fa " + monsterDamage + " danni!");
+
+        // Controllo della morte dell'Eroe (GAME OVER)
+        if (hero.getHp() <= 0) {
+            hero.setHp(0);
+            isGameOver = true;
+            logMessage("🚨 SEI MORTO! GAME OVER 🚨");
+        }
+    }
+
+    /**
+     * Passaggio al livello successivo: rigenera labirinto e potenzia il mostro.
+     */
+    private void nextLevel() {
+        currentLevel++;
+        logMessage("🎉 Sei passato al livello " + currentLevel + "!");
+
+        // Rigeneriamo il labirinto
+        this.map = new DungeonMap(10, 10);
+
+        // Resettiamo la posizione dell'eroe all'inizio
+        hero.setX(1);
+        hero.setY(1);
+
+        // Creiamo un mostro nuovo e più forte in base al livello!
+        int newHp = 20 + (currentLevel * 10);
+        int newDmg = 6 + (currentLevel * 2);
+        this.monster = new Monster("Orco Elite", newHp, newDmg, 7, 2);
+
+        logMessage("👹 Un nuovo " + monster.getType() + " è apparso (HP: " + newHp + ")!");
     }
 
     public void moveMonsterTowardsHero() {
@@ -80,7 +121,6 @@ public class GameController {
         int heroY = hero.getY();
 
         int deltaX = 0, deltaY = 0;
-
         if (Math.abs(heroX - monsterX) > Math.abs(heroY - monsterY)) {
             deltaX = (heroX > monsterX) ? 1 : -1;
         } else {
@@ -98,14 +138,13 @@ public class GameController {
 
     private void logMessage(String msg) {
         combatLog.add(msg);
-        // Teniamo solo gli ultimi 5 messaggi per non intasare la schermata
-        if (combatLog.size() > 5) {
-            combatLog.remove(0);
-        }
+        if (combatLog.size() > 6) combatLog.remove(0);
     }
 
     public List<String> getCombatLog() { return combatLog; }
     public DungeonMap getMap() { return map; }
     public Hero getHero() { return hero; }
     public Monster getMonster() { return monster; }
+    public int getCurrentLevel() { return currentLevel; }
+    public boolean isGameOver() { return isGameOver; }
 }

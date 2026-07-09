@@ -25,6 +25,7 @@ public class DungeonView extends HBox {
 
     private Image wallImg;
     private Image floorImg;
+    private Image doorImg; // Texture nuova per l'uscita
     private Image heroImg;
     private Image monsterImg;
 
@@ -32,7 +33,6 @@ public class DungeonView extends HBox {
         this.controller = controller;
         this.setStyle("-fx-background-color: #0b0b0d;");
 
-        // Creiamo i due sotto-pannelli affiancati
         this.mapGrid = new GridPane();
         this.mapGrid.setStyle("-fx-padding: 20;");
         this.mapGrid.setHgap(1);
@@ -43,7 +43,6 @@ public class DungeonView extends HBox {
         this.hudPanel.setStyle("-fx-background-color: #141419; -fx-border-color: #2d2d38; -fx-border-width: 0 0 0 2;");
         this.hudPanel.setPadding(new Insets(20));
 
-        // Li aggiungiamo all'HBox principale
         this.getChildren().addAll(mapGrid, hudPanel);
 
         generateTextures();
@@ -57,10 +56,7 @@ public class DungeonView extends HBox {
         gc.setFill(Color.web("#3A3D40"));
         gc.fillRect(0, 0, tileSize, tileSize);
         gc.setStroke(Color.web("#1A1C1E"));
-        gc.setLineWidth(2);
         gc.strokeRect(0, 0, tileSize, tileSize);
-        gc.strokeLine(0, tileSize / 2.0, tileSize, tileSize / 2.0);
-        gc.strokeLine(tileSize / 2.0, 0, tileSize / 2.0, tileSize / 2.0);
         wallImg = canvasWall.snapshot(null, new WritableImage(tileSize, tileSize));
 
         // Texture Pavimento
@@ -68,20 +64,22 @@ public class DungeonView extends HBox {
         gc = canvasFloor.getGraphicsContext2D();
         gc.setFill(Color.web("#1E2022"));
         gc.fillRect(0, 0, tileSize, tileSize);
-        gc.setStroke(Color.web("#2D3033"));
-        gc.setLineWidth(1);
-        gc.strokeRect(0, 0, tileSize, tileSize);
         floorImg = canvasFloor.snapshot(null, new WritableImage(tileSize, tileSize));
+
+        // Texture Porta/Uscita 'E'
+        Canvas canvasDoor = new Canvas(tileSize, tileSize);
+        gc = canvasDoor.getGraphicsContext2D();
+        gc.setFill(Color.web("#8B5A2B")); // Marrone legno
+        gc.fillRect(5, 5, tileSize - 10, tileSize - 5);
+        gc.setFill(Color.GOLD); // Maniglia dorata
+        gc.fillOval(tileSize - 15, tileSize / 2.0, 6, 6);
+        doorImg = canvasDoor.snapshot(null, new WritableImage(tileSize, tileSize));
 
         heroImg = new Image("https://img.icons8.com/color/40/wizard.png", tileSize, tileSize, true, true);
         monsterImg = new Image("https://img.icons8.com/color/40/orc.png", tileSize, tileSize, true, true);
     }
 
-    /**
-     * Ridisegna la mappa E aggiorna contemporaneamente i testi dell'HUD!
-     */
     public void render() {
-        // 1. AGGIORNAMENTO DELLA MAPPA GRAFICA
         mapGrid.getChildren().clear();
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
@@ -96,12 +94,16 @@ public class DungeonView extends HBox {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
+                // Disegno sfondo in base al carattere della matrice
                 if (grid[r][c] == '#') {
                     tileView.setImage(wallImg);
+                } else if (grid[r][c] == 'E') {
+                    tileView.setImage(doorImg);
                 } else {
                     tileView.setImage(floorImg);
                 }
 
+                // Sovrapposizione entità
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
                 } else if (c == monsterX && r == monsterY && monsterHp > 0) {
@@ -112,23 +114,32 @@ public class DungeonView extends HBox {
             }
         }
 
-        // 2. AGGIORNAMENTO DEI TESTI DELL'HUD (Sincronizzato al 100%)
+        // AGGIORNAMENTO HUD LATERALE
         hudPanel.getChildren().clear();
 
+        // Livello Corrente
+        Text lvlText = new Text("🏰 DUNGEON LIVELLO: " + controller.getCurrentLevel());
+        lvlText.setFont(Font.font("Arial", 16));
+        lvlText.setFill(Color.PURPLE);
+
+        // Status Eroe
         Text statsTitle = new Text("🛡️ STATUS EROE");
         statsTitle.setFont(Font.font("Arial", 18));
         statsTitle.setFill(Color.web("#00D2FF"));
 
-        Text heroInfo = new Text("Nome: " + controller.getHero().getName() + "\nPosizione: [" + heroX + "," + heroY + "]");
+        // Mostriamo gli HP dell'Eroe!
+        Color hpColor = controller.getHero().getHp() > 30 ? Color.GREEN : Color.RED;
+        Text heroInfo = new Text("Nome: " + controller.getHero().getName() + "\nHP: " + controller.getHero().getHp() + "/100\nPosizione: [" + heroX + "," + heroY + "]");
         heroInfo.setFont(Font.font("Arial", 14));
         heroInfo.setFill(Color.WHITE);
 
+        // Status Mostro
         Text monsterTitle = new Text("\n👹 STATO MOSTRO");
         monsterTitle.setFont(Font.font("Arial", 18));
         monsterTitle.setFill(Color.web("#FF1744"));
 
         String monsterStatus = monsterHp > 0
-                ? "Nome: " + controller.getMonster().getType() + "\nHP: " + monsterHp
+                ? "Tipo: " + controller.getMonster().getType() + "\nHP: " + monsterHp
                 : "STATO: DEFUNTO 💀";
         Text monsterInfo = new Text(monsterStatus);
         monsterInfo.setFont(Font.font("Arial", 14));
@@ -138,12 +149,14 @@ public class DungeonView extends HBox {
         logTitle.setFont(Font.font("Arial", 16));
         logTitle.setFill(Color.LIGHTGRAY);
 
-        hudPanel.getChildren().addAll(statsTitle, heroInfo, monsterTitle, monsterInfo, logTitle);
+        hudPanel.getChildren().addAll(lvlText, statsTitle, heroInfo, monsterTitle, monsterInfo, logTitle);
 
         for (String log : controller.getCombatLog()) {
             Text logLine = new Text(log);
             logLine.setFont(Font.font("Consolas", 12));
-            logLine.setFill(Color.GOLD);
+            // Se c'è scritto GAME OVER coloriamo la scritta di rosso acceso
+            if (log.contains("GAME OVER")) logLine.setFill(Color.RED);
+            else logLine.setFill(Color.GOLD);
             hudPanel.getChildren().add(logLine);
         }
     }
