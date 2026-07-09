@@ -33,6 +33,7 @@ public class DungeonView extends HBox {
     private Image heartImg;
     private Image heroImg;
     private Image monsterImg;
+    private Image fogImg; // Texture per la nebbia nei livelli avanzati
 
     public DungeonView(GameController controller) {
         this.controller = controller;
@@ -90,11 +91,22 @@ public class DungeonView extends HBox {
         gc.strokeLine(12, tileSize/2.0, tileSize-12, tileSize/2.0);
         heartImg = canvasHeart.snapshot(null, new WritableImage(tileSize, tileSize));
 
+        // GENERAZIONE TEXTURE DELLA NEBBIA (Nero fiammante per oscurare la griglia)
+        WritableImage imgFog = new WritableImage(tileSize, tileSize);
+        for (int x = 0; x < tileSize; x++) {
+            for (int y = 0; y < tileSize; y++) {
+                imgFog.getPixelWriter().setColor(x, y, Color.web("#050505"));
+            }
+        }
+        fogImg = imgFog;
+
         heroImg = new Image("https://img.icons8.com/color/40/wizard.png", tileSize, tileSize, true, true);
         monsterImg = new Image("https://img.icons8.com/color/40/orc.png", tileSize, tileSize, true, true);
     }
 
     public void render() {
+        int currentLevel = controller.getCurrentLevel();
+
         // AGGIORNAMENTO DEL MEGA TESTO SOPRA LA MAPPA
         if (controller.isGameOver()) {
             topStatusText.setText("🚨 GAME OVER 🚨");
@@ -103,7 +115,7 @@ public class DungeonView extends HBox {
             topStatusText.setText("👑 VITTORIA FINALE! 👑");
             topStatusText.setFill(Color.GREEN);
         } else {
-            topStatusText.setText("🏰 LIVELLO " + controller.getCurrentLevel());
+            topStatusText.setText("🏰 LIVELLO " + currentLevel);
             topStatusText.setFill(Color.web("#00D2FF"));
         }
 
@@ -118,24 +130,39 @@ public class DungeonView extends HBox {
         int monsterY = controller.getMonster().getY();
         int monsterHp = controller.getMonster().getHp();
 
+        // Visione: vedi fino a 2 caselle di distanza
+        int visionRadius = 2;
+
         for (int r = 0; r < map.getRows(); r++) {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
-                if (grid[r][c] == '#') {
-                    tileView.setImage(wallImg);
-                } else if (grid[r][c] == 'E') {
-                    tileView.setImage(doorImg);
-                } else if (grid[r][c] == 'H') {
-                    tileView.setImage(heartImg);
-                } else {
-                    tileView.setImage(floorImg);
-                }
+                // Calcolo dinamico della distanza dal mago
+                int distX = Math.abs(c - heroX);
+                int distY = Math.abs(r - heroY);
+                boolean isVisible = (distX <= visionRadius && distY <= visionRadius);
 
-                if (c == heroX && r == heroY) {
-                    tileView.setImage(heroImg);
-                } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
-                    tileView.setImage(monsterImg);
+                // MODIFICA CORRETTA: La nebbia scatta dal livello 3 in su (3, 4, 5)
+                if (currentLevel >= 3 && !isVisible) {
+                    tileView.setImage(fogImg);
+                } else {
+                    // Altrimenti disegna lo sfondo normale scoperto
+                    if (grid[r][c] == '#') {
+                        tileView.setImage(wallImg);
+                    } else if (grid[r][c] == 'E') {
+                        tileView.setImage(doorImg);
+                    } else if (grid[r][c] == 'H') {
+                        tileView.setImage(heartImg);
+                    } else {
+                        tileView.setImage(floorImg);
+                    }
+
+                    // Personaggi sopra lo sfondo scoperto
+                    if (c == heroX && r == heroY) {
+                        tileView.setImage(heroImg);
+                    } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
+                        tileView.setImage(monsterImg);
+                    }
                 }
 
                 mapGrid.add(tileView, c, r);
