@@ -25,7 +25,8 @@ public class DungeonView extends HBox {
 
     private Image wallImg;
     private Image floorImg;
-    private Image doorImg; // Texture nuova per l'uscita
+    private Image doorImg;
+    private Image heartImg; // Nuova texture per i +5 HP
     private Image heroImg;
     private Image monsterImg;
 
@@ -50,30 +51,30 @@ public class DungeonView extends HBox {
     }
 
     private void generateTextures() {
-        // Texture Muro
         Canvas canvasWall = new Canvas(tileSize, tileSize);
         GraphicsContext gc = canvasWall.getGraphicsContext2D();
-        gc.setFill(Color.web("#3A3D40"));
-        gc.fillRect(0, 0, tileSize, tileSize);
-        gc.setStroke(Color.web("#1A1C1E"));
-        gc.strokeRect(0, 0, tileSize, tileSize);
+        gc.setFill(Color.web("#3A3D40")); gc.fillRect(0, 0, tileSize, tileSize);
         wallImg = canvasWall.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // Texture Pavimento
         Canvas canvasFloor = new Canvas(tileSize, tileSize);
         gc = canvasFloor.getGraphicsContext2D();
-        gc.setFill(Color.web("#1E2022"));
-        gc.fillRect(0, 0, tileSize, tileSize);
+        gc.setFill(Color.web("#1E2022")); gc.fillRect(0, 0, tileSize, tileSize);
         floorImg = canvasFloor.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // Texture Porta/Uscita 'E'
         Canvas canvasDoor = new Canvas(tileSize, tileSize);
         gc = canvasDoor.getGraphicsContext2D();
-        gc.setFill(Color.web("#8B5A2B")); // Marrone legno
-        gc.fillRect(5, 5, tileSize - 10, tileSize - 5);
-        gc.setFill(Color.GOLD); // Maniglia dorata
-        gc.fillOval(tileSize - 15, tileSize / 2.0, 6, 6);
+        gc.setFill(Color.web("#8B5A2B")); gc.fillRect(5, 5, tileSize - 10, tileSize - 5);
+        gc.setFill(Color.GOLD); gc.fillOval(tileSize - 15, tileSize / 2.0, 6, 6);
         doorImg = canvasDoor.snapshot(null, new WritableImage(tileSize, tileSize));
+
+        // DISEGNIAMO IL PACCHETTO CURATIVO (Quadratino rosso con croce bianca)
+        Canvas canvasHeart = new Canvas(tileSize, tileSize);
+        gc = canvasHeart.getGraphicsContext2D();
+        gc.setFill(Color.RED); gc.fillOval(8, 8, tileSize-16, tileSize-16);
+        gc.setStroke(Color.WHITE); gc.setLineWidth(3);
+        gc.strokeLine(tileSize/2.0, 12, tileSize/2.0, tileSize-12);
+        gc.strokeLine(12, tileSize/2.0, tileSize-12, tileSize/2.0);
+        heartImg = canvasHeart.snapshot(null, new WritableImage(tileSize, tileSize));
 
         heroImg = new Image("https://img.icons8.com/color/40/wizard.png", tileSize, tileSize, true, true);
         monsterImg = new Image("https://img.icons8.com/color/40/orc.png", tileSize, tileSize, true, true);
@@ -94,16 +95,16 @@ public class DungeonView extends HBox {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
-                // Disegno sfondo in base al carattere della matrice
                 if (grid[r][c] == '#') {
                     tileView.setImage(wallImg);
                 } else if (grid[r][c] == 'E') {
                     tileView.setImage(doorImg);
+                } else if (grid[r][c] == 'H') {
+                    tileView.setImage(heartImg); // Mostra il medikit rosso
                 } else {
                     tileView.setImage(floorImg);
                 }
 
-                // Sovrapposizione entità
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
                 } else if (c == monsterX && r == monsterY && monsterHp > 0) {
@@ -117,46 +118,45 @@ public class DungeonView extends HBox {
         // AGGIORNAMENTO HUD LATERALE
         hudPanel.getChildren().clear();
 
-        // Livello Corrente
-        Text lvlText = new Text("🏰 DUNGEON LIVELLO: " + controller.getCurrentLevel());
-        lvlText.setFont(Font.font("Arial", 16));
-        lvlText.setFill(Color.PURPLE);
+        // Controllo scritte di stato globali
+        if (controller.isGameOver()) {
+            Text alert = new Text("🚨 GAME OVER 🚨\nSei stato Sconfitto!");
+            alert.setFont(Font.font("Arial", 22)); alert.setFill(Color.RED);
+            hudPanel.getChildren().add(alert);
+            return;
+        }
+        if (controller.isGameWon()) {
+            Text winAlert = new Text("👑 VITTORIA! 👑\nHai completato il\nDungeon dei 5 livelli!");
+            winAlert.setFont(Font.font("Arial", 20)); winAlert.setFill(Color.GREEN);
+            hudPanel.getChildren().add(winAlert);
+            return;
+        }
 
-        // Status Eroe
+        Text lvlText = new Text("🏰 DUNGEON LIVELLO: " + controller.getCurrentLevel() + "/5");
+        lvlText.setFont(Font.font("Arial", 16)); lvlText.setFill(Color.PURPLE);
+
         Text statsTitle = new Text("🛡️ STATUS EROE");
-        statsTitle.setFont(Font.font("Arial", 18));
-        statsTitle.setFill(Color.web("#00D2FF"));
+        statsTitle.setFont(Font.font("Arial", 18)); statsTitle.setFill(Color.web("#00D2FF"));
 
-        // Mostriamo gli HP dell'Eroe!
-        Color hpColor = controller.getHero().getHp() > 30 ? Color.GREEN : Color.RED;
-        Text heroInfo = new Text("Nome: " + controller.getHero().getName() + "\nHP: " + controller.getHero().getHp() + "/100\nPosizione: [" + heroX + "," + heroY + "]");
-        heroInfo.setFont(Font.font("Arial", 14));
-        heroInfo.setFill(Color.WHITE);
+        Text heroInfo = new Text("Nome: " + controller.getHero().getName() + "\nHP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
+        heroInfo.setFont(Font.font("Arial", 14)); heroInfo.setFill(Color.WHITE);
 
-        // Status Mostro
         Text monsterTitle = new Text("\n👹 STATO MOSTRO");
-        monsterTitle.setFont(Font.font("Arial", 18));
-        monsterTitle.setFill(Color.web("#FF1744"));
+        monsterTitle.setFont(Font.font("Arial", 18)); monsterTitle.setFill(Color.web("#FF1744"));
 
-        String monsterStatus = monsterHp > 0
-                ? "Tipo: " + controller.getMonster().getType() + "\nHP: " + monsterHp
-                : "STATO: DEFUNTO 💀";
+        String monsterStatus = monsterHp > 0 ? "Tipo: " + controller.getMonster().getType() + "\nHP: " + monsterHp : "STATO: DEFUNTO 💀";
         Text monsterInfo = new Text(monsterStatus);
-        monsterInfo.setFont(Font.font("Arial", 14));
-        monsterInfo.setFill(Color.WHITE);
+        monsterInfo.setFont(Font.font("Arial", 14)); monsterInfo.setFill(Color.WHITE);
 
         Text logTitle = new Text("\n📜 DIARIO DI GIOCO");
-        logTitle.setFont(Font.font("Arial", 16));
-        logTitle.setFill(Color.LIGHTGRAY);
+        logTitle.setFont(Font.font("Arial", 16)); logTitle.setFill(Color.LIGHTGRAY);
 
         hudPanel.getChildren().addAll(lvlText, statsTitle, heroInfo, monsterTitle, monsterInfo, logTitle);
 
         for (String log : controller.getCombatLog()) {
             Text logLine = new Text(log);
             logLine.setFont(Font.font("Consolas", 12));
-            // Se c'è scritto GAME OVER coloriamo la scritta di rosso acceso
-            if (log.contains("GAME OVER")) logLine.setFill(Color.RED);
-            else logLine.setFill(Color.GOLD);
+            logLine.setFill(Color.GOLD);
             hudPanel.getChildren().add(logLine);
         }
     }
