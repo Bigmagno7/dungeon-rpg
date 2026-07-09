@@ -28,30 +28,38 @@ public class GameController {
     public boolean handleHeroMovement(int deltaX, int deltaY) {
         if (isGameOver || isGameWon) return false;
 
-        int newX = hero.getX() + deltaX;
-        int newY = hero.getY() + deltaY;
+        // Coordinate future dove l'eroe vorrebbe andare
+        int nextX = hero.getX() + deltaX;
+        int nextY = hero.getY() + deltaY;
 
-        if (map.getGrid()[newY][newX] == '#') return false;
+        // 1. Blocco sui muri
+        if (map.getGrid()[nextY][nextX] == '#') return false;
 
-        // 1. SE IL MOSTRO È GIÀ SOPRA DI TE O NELLA CASELLA DOVE VAI -> SI COMBATTE!
-        if (monster.getHp() > 0 && ((newX == monster.getX() && newY == monster.getY()) || (hero.getX() == monster.getX() && hero.getY() == monster.getY()))) {
+        // 2. CONTROLLO COLLISIONE: Il mostro è nella casella dove voglio andare?
+        if (monster.getHp() > 0 && nextX == monster.getX() && nextY == monster.getY()) {
+            // Spara il colpo stando FERMO nella posizione attuale!
             executeCombatTurn();
-            return true;
+
+            // Il mostro è ancora vivo? Allora contrattacca subito stando fermo!
+            if (monster.getHp() > 0 && !isGameOver) {
+                executeMonsterAttack();
+            }
+            return true; // Blocca il turno qui! L'eroe NON si sposta sulla casella del mostro!
         }
 
-        // Muove l'eroe
-        hero.setX(newX);
-        hero.setY(newY);
+        // 3. Se la casella è libera, allora (e solo allora) l'eroe fa il passo
+        hero.setX(nextX);
+        hero.setY(nextY);
 
         // Controllo medikit
-        if (map.getGrid()[newY][newX] == 'H') {
+        if (map.getGrid()[nextY][nextX] == 'H') {
             hero.setHp(Math.min(50, hero.getHp() + 5));
-            map.getGrid()[newY][newX] = '.';
+            map.getGrid()[nextY][nextX] = '.';
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
 
         // Controllo porta
-        if (map.getGrid()[newY][newX] == 'E') {
+        if (map.getGrid()[nextY][nextX] == 'E') {
             if (currentLevel == 5) {
                 isGameWon = true;
                 logMessage("👑 COMPLIMENTI! HAI VINTO IL GIOCO! 👑");
@@ -61,10 +69,10 @@ public class GameController {
             return true;
         }
 
-        // Turno del mostro
+        // 4. Turno del mostro (si muove verso di te solo se non avete appena combattuto)
         if (monster.getHp() > 0 && !isGameOver && !isGameWon) {
             moveMonsterTowardsHero();
-            // Se il mostro ti raggiunge, ti attacca e SI FERMA, non ti cammina sopra!
+            // Se muovendosi ti viene addosso, ti mena
             if (monster.getX() == hero.getX() && monster.getY() == hero.getY()) {
                 executeMonsterAttack();
             }
