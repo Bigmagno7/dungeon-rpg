@@ -108,33 +108,78 @@ public class GameController {
         logMessage("👹 Apparso " + monster.getType() + " con " + newHp + " HP!");
     }
 
+    /**
+     * Muove il mostro verso l'eroe usando l'algoritmo BFS per aggirare i muri.
+     */
     public void moveMonsterTowardsHero() {
-        int monsterX = monster.getX();
-        int monsterY = monster.getY();
-        int heroX = hero.getX();
-        int heroY = hero.getY();
+        int startX = monster.getX();
+        int startY = monster.getY();
+        int targetX = hero.getX();
+        int targetY = hero.getY();
 
-        int deltaX = 0, deltaY = 0;
+        // Se sono già sulla stessa casella, non muoverti
+        if (startX == targetX && startY == targetY) return;
 
-        if (Math.abs(heroX - monsterX) > Math.abs(heroY - monsterY)) {
-            deltaX = (heroX > monsterX) ? 1 : -1;
-        } else {
-            deltaY = (heroY > monsterY) ? 1 : -1;
+        int rows = map.getRows();
+        int cols = map.getCols();
+
+        // Strutture per la BFS
+        java.util.Queue<Node> queue = new java.util.LinkedList<>();
+        boolean[][] visited = new boolean[rows][cols];
+
+        // Direzioni possibili (Su, Giù, Sinistra, Destra)
+        int[][] dirs = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+
+        // Partiamo dalla posizione attuale del mostro
+        queue.add(new Node(startX, startY, null));
+        visited[startY][startX] = true;
+
+        Node targetNode = null;
+
+        // Ciclo della BFS per trovare l'eroe
+        while (!queue.isEmpty()) {
+            Node curr = queue.poll();
+
+            if (curr.x == targetX && curr.y == targetY) {
+                targetNode = curr;
+                break;
+            }
+
+            for (int[] d : dirs) {
+                int nextX = curr.x + d[0];
+                int nextY = curr.y + d[1];
+
+                if (nextX >= 0 && nextX < cols && nextY >= 0 && nextY < rows) {
+                    if (map.getGrid()[nextY][nextX] != '#' && !visited[nextY][nextX]) {
+                        visited[nextY][nextX] = true;
+                        queue.add(new Node(nextX, nextY, curr));
+                    }
+                }
+            }
         }
 
-        int nextX = monsterX + deltaX;
-        int nextY = monsterY + deltaY;
+        // Se abbiamo trovato un percorso, risaliamo al PRIMO passo da fare
+        if (targetNode != null) {
+            Node p = targetNode;
+            // Risaliamo la catena dei nodi fino a trovare quello subito dopo l'inizio
+            while (p.parent != null && (p.parent.x != startX || p.parent.y != startY)) {
+                p = p.parent;
+            }
+            // Facciamo fare il passo intelligente al mostro
+            monster.setX(p.x);
+            monster.setY(p.y);
+        }
+    }
 
-        // Se la via è libera si muove verso l'eroe
-        if (map.getGrid()[nextY][nextX] != '#') {
-            monster.setX(nextX);
-            monster.setY(nextY);
-        } else {
-            // Sblocco anti-incastro: se c'è un muro prova a muoversi a caso di lato!
-            int altX = monsterX + (rand.nextBoolean() ? 1 : -1);
-            int altY = monsterY + (rand.nextBoolean() ? 1 : -1);
-            if (map.getGrid()[monsterY][altX] != '#') monster.setX(altX);
-            else if (map.getGrid()[altY][monsterX] != '#') monster.setY(altY);
+    // Classe di supporto interna da mettere IN FONDO a GameController.java (prima dell'ultima })
+    private static class Node {
+        int x, y;
+        Node parent;
+
+        Node(int x, int y, Node parent) {
+            this.x = x;
+            this.y = y;
+            this.parent = parent;
         }
     }
 
