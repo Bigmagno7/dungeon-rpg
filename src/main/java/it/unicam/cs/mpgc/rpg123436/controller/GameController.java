@@ -20,8 +20,8 @@ public class GameController {
     public GameController() {
         this.map = new DungeonMap(10, 10, currentLevel);
         this.hero = new Hero("Mago", 1, 1);
-        this.hero.setHp(50); // 50 HP iniziali
-        this.monster = new Monster("Orco", 30, 6, 7, 2); // 30 HP reali al livello 1
+        this.hero.setHp(50); // Parte con 50 HP reali
+        this.monster = new Monster("Orco", 30, 6, 7, 2); // 30 HP liv 1
         combatLog.add("Benvenuto! Livello " + currentLevel + " - HP: 50");
     }
 
@@ -31,27 +31,27 @@ public class GameController {
         int newX = hero.getX() + deltaX;
         int newY = hero.getY() + deltaY;
 
-        // 1. Blocco sui muri
+        // Blocco sui muri
         if (map.getGrid()[newY][newX] == '#') return false;
 
-        // 2. SE C'È L'ORCO VIVO NELLA CASELLA DOVE VOGLIO ANDARE -> COMBATTIMENTO E BLOCCO IL MOVIMENTO
+        // Se vai contro il mostro vivo: COMBATTIMENTO (l'eroe non avanza!)
         if (monster.getHp() > 0 && newX == monster.getX() && newY == monster.getY()) {
             executeCombatTurn();
-            return true; // Il turno finisce qui, l'eroe NON si sposta sopra il mostro!
+            return true;
         }
 
-        // 3. Muoviamo l'eroe SOLO se la casella è libera o il mostro è morto
+        // Muove l'eroe solo se la casella è calpestabile
         hero.setX(newX);
         hero.setY(newY);
 
-        // Controllo medikit
+        // Controllo Medikit
         if (map.getGrid()[newY][newX] == 'H') {
             hero.setHp(Math.min(50, hero.getHp() + 5));
             map.getGrid()[newY][newX] = '.';
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
 
-        // Controllo porta livello successivo
+        // Controllo Porta
         if (map.getGrid()[newY][newX] == 'E') {
             if (currentLevel == 5) {
                 isGameWon = true;
@@ -62,10 +62,9 @@ public class GameController {
             return true;
         }
 
-        // 4. Il mostro si muove e contrattacca solo se è ancora vivo dopo il turno dell'eroe
+        // Turno del mostro intelligente (solo se vivo)
         if (monster.getHp() > 0 && !isGameOver && !isGameWon) {
             moveMonsterTowardsHero();
-            // Se il mostro raggiunge l'eroe, lo mena
             if (monster.getX() == hero.getX() && monster.getY() == hero.getY()) {
                 executeMonsterAttack();
             }
@@ -79,14 +78,13 @@ public class GameController {
 
         int heroDamage = 10;
         monster.setHp(monster.getHp() - heroDamage);
-        logMessage("⚔️ Colpisci l'Orco per " + heroDamage + " danni!");
+        logMessage("⚔️ Colpisci il mostro per " + heroDamage + " danni!");
 
         if (monster.getHp() <= 0) {
             monster.setHp(0);
-            // TRUCCO SALVAVITA: Spostiamo il cadavere fuori dal mondo di gioco!
-            monster.setX(-1);
+            monster.setX(-1); // Lanciato fuori mappa per sicurezza assoluta
             monster.setY(-1);
-            logMessage("💀 L'Orco è morto! La via è libera!");
+            logMessage("💀 Mostro ucciso! La via è libera!");
             return;
         }
 
@@ -94,11 +92,11 @@ public class GameController {
     }
 
     private void executeMonsterAttack() {
-        if (monster.getHp() <= 0) return; // Un morto non contrattacca!
+        if (monster.getHp() <= 0) return;
 
         int monsterDamage = monster.getDamage();
         hero.setHp(hero.getHp() - monsterDamage);
-        logMessage("💥 L'Orco ti fa " + monsterDamage + " danni!");
+        logMessage("💥 Subisci " + monsterDamage + " danni!");
 
         if (hero.getHp() <= 0) {
             hero.setHp(0);
@@ -110,16 +108,17 @@ public class GameController {
     private void nextLevel() {
         currentLevel++;
         combatLog.clear();
-        logMessage("🎉 Sei passato al livello " + currentLevel + "!");
+        logMessage("🎉 Benvenuto al livello " + currentLevel + "!");
 
         this.map = new DungeonMap(10, 10, currentLevel);
         hero.setX(1);
         hero.setY(1);
 
-        // HP bilanciati per i livelli successivi (Lvl 2 = 30 HP, Lvl 3 = 40 HP...)
-        int newHp = 10 + (currentLevel * 10);
+        // HP crescenti per i livelli
+        int newHp = 10 + (currentLevel * 10); // Liv 2 = 30 HP, Liv 3 = 40 HP...
         int newDmg = 4 + currentLevel;
 
+        // Spawn sicuro per non nascere incastrato
         int spawnX = 7; int spawnY = 7;
         if (currentLevel == 2) { spawnX = 7; spawnY = 3; }
         else if (currentLevel == 3) { spawnX = 6; spawnY = 2; }
@@ -127,13 +126,12 @@ public class GameController {
         else if (currentLevel == 5) { spawnX = 4; spawnY = 5; }
 
         this.monster = new Monster("Orco Lvl " + currentLevel, newHp, newDmg, spawnX, spawnY);
-        logMessage("👹 Apparso " + monster.getType() + " con " + newHp + " HP!");
     }
 
     public void moveMonsterTowardsHero() {
         int startX = monster.getX(); int startY = monster.getY();
         int targetX = hero.getX(); int targetY = hero.getY();
-        if (startX == targetX && startY == targetY) return;
+        if (startX == -1 || (startX == targetX && startY == targetY)) return;
 
         int rows = map.getRows(); int cols = map.getCols();
         java.util.Queue<Node> queue = new java.util.LinkedList<>();
