@@ -66,35 +66,38 @@ public class DungeonView extends GridPane {
     /**
      * Ridisegna l'intera griglia leggendo le posizioni AGGIORNATE dei personaggi.
      */
+    /**
+     * Ridisegna la griglia e mostra il mostro SOLO se è ancora vivo.
+     */
     public void render() {
         this.getChildren().clear();
 
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
 
-        // Recuperiamo le posizioni correnti direttamente dal controller a ogni ciclo
         int heroX = controller.getHero().getX();
         int heroY = controller.getHero().getY();
         int monsterX = controller.getMonster().getX();
         int monsterY = controller.getMonster().getY();
+        int monsterHp = controller.getMonster().getHp(); // Prendiamo la vita attuale
 
         for (int r = 0; r < map.getRows(); r++) {
             for (int c = 0; c < map.getCols(); c++) {
                 ImageView tileView = new ImageView();
 
-                // 1. Disegna lo sfondo (Muro o Pavimento)
+                // 1. Sfondo della cella
                 if (grid[r][c] == '#') {
                     tileView.setImage(wallImg);
                 } else {
                     tileView.setImage(floorImg);
                 }
 
-                // 2. Controllo Eroe (c è la X/Colonna, r è la Y/Riga)
+                // 2. Disegna l'Eroe
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
                 }
-                // 3. Controllo Mostro (confronto dinamico)
-                else if (c == monsterX && r == monsterY) {
+                // 3. Disegna il Mostro SOLO SE È VIVO (HP > 0)
+                else if (c == monsterX && r == monsterY && monsterHp > 0) {
                     tileView.setImage(monsterImg);
                 }
 
