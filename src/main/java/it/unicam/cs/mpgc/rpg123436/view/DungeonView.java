@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg123436.view;
 import it.unicam.cs.mpgc.rpg123436.controller.GameController;
 import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -13,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class DungeonView extends HBox {
@@ -22,6 +24,8 @@ public class DungeonView extends HBox {
 
     private GridPane mapGrid;
     private VBox hudPanel;
+    private VBox leftLayout; // Layout sinistro che contiene Titolo + Mappa
+    private Text topStatusText; // Il mega testo sopra la mappa
 
     private Image wallImg;
     private Image floorImg;
@@ -34,17 +38,28 @@ public class DungeonView extends HBox {
         this.controller = controller;
         this.setStyle("-fx-background-color: #0b0b0d;");
 
+        // 1. Creiamo il layout di sinistra (Titolo sopra + Mappa sotto)
+        this.leftLayout = new VBox(10);
+        this.leftLayout.setPadding(new Insets(20));
+        this.leftLayout.setAlignment(Pos.TOP_CENTER);
+
+        // Il mega testo sopra la mappa
+        this.topStatusText = new Text();
+        this.topStatusText.setFont(Font.font("Arial", FontWeight.BOLD, 28));
+
         this.mapGrid = new GridPane();
-        this.mapGrid.setStyle("-fx-padding: 20;");
         this.mapGrid.setHgap(1);
         this.mapGrid.setVgap(1);
 
+        this.leftLayout.getChildren().addAll(topStatusText, mapGrid);
+
+        // 2. Pannello HUD di destra classico per i log
         this.hudPanel = new VBox(15);
         this.hudPanel.setPrefWidth(300);
         this.hudPanel.setStyle("-fx-background-color: #141419; -fx-border-color: #2d2d38; -fx-border-width: 0 0 0 2;");
         this.hudPanel.setPadding(new Insets(20));
 
-        this.getChildren().addAll(mapGrid, hudPanel);
+        this.getChildren().addAll(leftLayout, hudPanel);
 
         generateTextures();
         render();
@@ -80,6 +95,19 @@ public class DungeonView extends HBox {
     }
 
     public void render() {
+        // AGGIORNAMENTO DEL MEGA TESTO SOPRA LA MAPPA
+        if (controller.isGameOver()) {
+            topStatusText.setText("🚨 GAME OVER 🚨");
+            topStatusText.setFill(Color.RED);
+        } else if (controller.isGameWon()) {
+            topStatusText.setText("👑 VITTORIA FINALE! 👑");
+            topStatusText.setFill(Color.GREEN);
+        } else {
+            topStatusText.setText("🏰 LIVELLO " + controller.getCurrentLevel());
+            topStatusText.setFill(Color.web("#00D2FF"));
+        }
+
+        // Render della griglia
         mapGrid.getChildren().clear();
         DungeonMap map = controller.getMap();
         char[][] grid = map.getGrid();
@@ -104,7 +132,6 @@ public class DungeonView extends HBox {
                     tileView.setImage(floorImg);
                 }
 
-                // RENDERING DELLE ENTITÀ: Struttura standard senza sovrapposizioni combinate
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
                 } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
@@ -115,41 +142,19 @@ public class DungeonView extends HBox {
             }
         }
 
+        // HUD laterale di riepilogo
         hudPanel.getChildren().clear();
 
-        if (controller.isGameOver()) {
-            Text alert = new Text("🚨 GAME OVER 🚨\nSei stato Sconfitto!");
-            alert.setFont(Font.font("Arial", 22)); alert.setFill(Color.RED);
-            hudPanel.getChildren().add(alert);
-            return;
-        }
-        if (controller.isGameWon()) {
-            Text winAlert = new Text("👑 VITTORIA! 👑\nHai completato il\nDungeon dei 5 livelli!");
-            winAlert.setFont(Font.font("Arial", 20)); winAlert.setFill(Color.GREEN);
-            hudPanel.getChildren().add(winAlert);
-            return;
-        }
-
-        Text lvlText = new Text("🏰 DUNGEON LIVELLO: " + controller.getCurrentLevel() + "/5");
-        lvlText.setFont(Font.font("Arial", 16)); lvlText.setFill(Color.PURPLE);
-
         Text statsTitle = new Text("🛡️ STATUS EROE");
-        statsTitle.setFont(Font.font("Arial", 18)); statsTitle.setFill(Color.web("#00D2FF"));
+        statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.LIGHTGRAY);
 
-        Text heroInfo = new Text("Nome: " + controller.getHero().getName() + "\nHP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
+        Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/50\nPosizione: [" + heroX + "," + heroY + "]");
         heroInfo.setFont(Font.font("Arial", 14)); heroInfo.setFill(Color.WHITE);
 
-        Text monsterTitle = new Text("\n👹 STATO MOSTRO");
-        monsterTitle.setFont(Font.font("Arial", 18)); monsterTitle.setFill(Color.web("#FF1744"));
-
-        String monsterStatus = monsterHp > 0 ? "Tipo: " + controller.getMonster().getType() + "\nHP: " + monsterHp : "STATO: DEFUNTO 💀";
-        Text monsterInfo = new Text(monsterStatus);
-        monsterInfo.setFont(Font.font("Arial", 14)); monsterInfo.setFill(Color.WHITE);
-
         Text logTitle = new Text("\n📜 DIARIO DI GIOCO");
-        logTitle.setFont(Font.font("Arial", 16)); logTitle.setFill(Color.LIGHTGRAY);
+        logTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); logTitle.setFill(Color.LIGHTGRAY);
 
-        hudPanel.getChildren().addAll(lvlText, statsTitle, heroInfo, monsterTitle, monsterInfo, logTitle);
+        hudPanel.getChildren().addAll(statsTitle, heroInfo, logTitle);
 
         for (String log : controller.getCombatLog()) {
             Text logLine = new Text(log);
