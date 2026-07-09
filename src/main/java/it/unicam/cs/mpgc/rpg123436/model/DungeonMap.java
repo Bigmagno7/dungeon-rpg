@@ -15,7 +15,7 @@ public class DungeonMap {
     private void generateMaze(int level) {
         this.grid = new char[rows][cols];
 
-        // Muri esterni
+        // Muri perimetrali esterni
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 if (r == 0 || r == rows - 1 || c == 0 || c == cols - 1) {
@@ -26,13 +26,13 @@ public class DungeonMap {
             }
         }
 
-        // DESIGN DEI 5 LIVELLI
+        // Layout per i 5 livelli singoli
         switch (level) {
             case 1:
                 for (int r = 1; r < 6; r++) grid[r][3] = '#';
                 for (int c = 3; c < 8; c++) grid[5][c] = '#';
                 grid[8][8] = 'E'; // Porta
-                grid[7][7] = 'H'; // Oggetto +5 HP
+                grid[7][7] = 'H'; // Medikit
                 break;
             case 2:
                 for (int r = 2; r < 8; r++) grid[r][5] = '#';
@@ -41,24 +41,21 @@ public class DungeonMap {
                 grid[7][2] = 'H';
                 break;
             case 3:
-                // Livello 3: Muro verticale a sinistra, orco e porta ben distanziati
                 for (int r = 1; r < 8; r++) grid[r][3] = '#';
-                grid[8][1] = 'E'; // Porta in basso a sinistra
-                grid[2][7] = 'H'; // Medikit in alto a destra
+                grid[8][1] = 'E';
+                grid[2][7] = 'H';
                 break;
             case 4:
-                // Livello 4: I quattro pilastri d'angolo
                 grid[3][3] = '#'; grid[3][6] = '#';
                 grid[6][3] = '#'; grid[6][6] = '#';
                 grid[8][8] = 'E';
                 grid[1][8] = 'H';
                 break;
             case 5:
-                // Livello 5: La sfida finale, corridoio a spirale!
                 for (int c = 2; c < 8; c++) grid[2][c] = '#';
                 for (int r = 3; r < 8; r++) grid[r][7] = '#';
                 for (int c = 2; c < 7; c++) grid[7][c] = '#';
-                grid[4][4] = 'E'; // La porta finale è al centro della spirale!
+                grid[4][4] = 'E';
                 grid[5][4] = 'H';
                 break;
             default:
