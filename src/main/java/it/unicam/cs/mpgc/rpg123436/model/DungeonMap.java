@@ -29,7 +29,7 @@ public class DungeonMap {
         // MAPPA LIVELLO 1
         if (level % 2 != 0) {
             for (int r = 1; r < 6; r++) grid[r][3] = '#';
-            for (int c = 3; c < 8; r++) grid[5][c] = '#';
+            for (int c = 3; c < 8; c++) grid[5][c] = '#';
             grid[8][8] = 'E'; // Porta in basso a destra
         }
         // MAPPA LIVELLO 2 (Completamente diversa!)
