@@ -41,10 +41,10 @@ public class DungeonMap {
                 grid[7][2] = 'H';
                 break;
             case 3:
-                // Livello 3: Stanze separate da una linea orizzontale con un buco
-                for (int c = 1; c < 9; c++) if (c != 4) grid[4][c] = '#';
-                grid[8][1] = 'E';
-                grid[2][7] = 'H';
+                // Livello 3: Muro verticale a sinistra, orco e porta ben distanziati
+                for (int r = 1; r < 8; r++) grid[r][3] = '#';
+                grid[8][1] = 'E'; // Porta in basso a sinistra
+                grid[2][7] = 'H'; // Medikit in alto a destra
                 break;
             case 4:
                 // Livello 4: I quattro pilastri d'angolo
