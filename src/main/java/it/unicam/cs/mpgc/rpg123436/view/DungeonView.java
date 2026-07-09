@@ -104,6 +104,7 @@ public class DungeonView extends HBox {
                     tileView.setImage(floorImg);
                 }
 
+                // RENDERING DELLE ENTITÀ: Struttura standard senza sovrapposizioni combinate
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
                 } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
