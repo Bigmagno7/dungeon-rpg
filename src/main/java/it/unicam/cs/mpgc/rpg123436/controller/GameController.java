@@ -100,19 +100,27 @@ public class GameController {
 
     private void nextLevel() {
         currentLevel++;
+        combatLog.clear(); // Puliamo il diario così non si accumulano vecchi messaggi
         logMessage("🎉 Sei passato al livello " + currentLevel + "!");
+
         this.map = new DungeonMap(10, 10, currentLevel);
+        hero.setX(1);
+        hero.setY(1);
 
-        hero.setX(1); hero.setY(1);
+        // Calcolo HP del mostro proporzionato e pulito
+        int newHp = 20 + (currentLevel * 5);
+        int newDmg = 4 + currentLevel;
 
-        int newHp = 15 + (currentLevel * 10);
-        int newDmg = 4 + (currentLevel * 2);
+        // Coordinate di Spawn sicure e testate per ogni mappa!
+        int spawnX = 7;
+        int spawnY = 7;
+        if (currentLevel == 3) { spawnX = 6; spawnY = 2; }
+        else if (currentLevel == 4) { spawnX = 5; spawnY = 5; }
+        else if (currentLevel == 5) { spawnX = 4; spawnY = 5; }
 
-        // Spawn dinamico per non incastrare
-        int spawnX = (currentLevel % 2 == 0) ? 2 : 7;
-        int spawnY = (currentLevel % 2 == 0) ? 7 : 3;
-
+        // Creiamo il nuovo mostro azzerando totalmente quello vecchio
         this.monster = new Monster("Orco Lvl " + currentLevel, newHp, newDmg, spawnX, spawnY);
+        logMessage("👹 Apparso " + monster.getType() + " con " + newHp + " HP!");
     }
 
     // Teniamo l'algoritmo intelligente BFS che abbiamo scritto prima
