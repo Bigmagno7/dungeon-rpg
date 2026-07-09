@@ -26,7 +26,7 @@ public class DungeonView extends HBox {
     private Image wallImg;
     private Image floorImg;
     private Image doorImg;
-    private Image heartImg; // Nuova texture per i +5 HP
+    private Image heartImg;
     private Image heroImg;
     private Image monsterImg;
 
@@ -67,7 +67,6 @@ public class DungeonView extends HBox {
         gc.setFill(Color.GOLD); gc.fillOval(tileSize - 15, tileSize / 2.0, 6, 6);
         doorImg = canvasDoor.snapshot(null, new WritableImage(tileSize, tileSize));
 
-        // DISEGNIAMO IL PACCHETTO CURATIVO (Quadratino rosso con croce bianca)
         Canvas canvasHeart = new Canvas(tileSize, tileSize);
         gc = canvasHeart.getGraphicsContext2D();
         gc.setFill(Color.RED); gc.fillOval(8, 8, tileSize-16, tileSize-16);
@@ -100,14 +99,14 @@ public class DungeonView extends HBox {
                 } else if (grid[r][c] == 'E') {
                     tileView.setImage(doorImg);
                 } else if (grid[r][c] == 'H') {
-                    tileView.setImage(heartImg); // Mostra il medikit rosso
+                    tileView.setImage(heartImg);
                 } else {
                     tileView.setImage(floorImg);
                 }
 
                 if (c == heroX && r == heroY) {
                     tileView.setImage(heroImg);
-                } else if (c == monsterX && r == monsterY && monsterHp > 0) {
+                } else if (monsterHp > 0 && c == monsterX && r == monsterY) {
                     tileView.setImage(monsterImg);
                 }
 
@@ -115,10 +114,8 @@ public class DungeonView extends HBox {
             }
         }
 
-        // AGGIORNAMENTO HUD LATERALE
         hudPanel.getChildren().clear();
 
-        // Controllo scritte di stato globali
         if (controller.isGameOver()) {
             Text alert = new Text("🚨 GAME OVER 🚨\nSei stato Sconfitto!");
             alert.setFont(Font.font("Arial", 22)); alert.setFill(Color.RED);
