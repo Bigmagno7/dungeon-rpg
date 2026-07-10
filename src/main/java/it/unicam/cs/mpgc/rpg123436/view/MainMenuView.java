@@ -17,8 +17,8 @@ public class MainMenuView extends VBox {
         this.setAlignment(Pos.CENTER);
         this.setStyle("-fx-background-color: #0b0b0d;"); // Stesso sfondo scuro del gioco
 
-        // Titolo del Gioco spaziale
-        Text title = new Text("🏰 DUNGEON WIZARD 🔮");
+        // Titolo del Gioco - Pulito dalle emoji per evitare i quadratini su Windows
+        Text title = new Text("DUNGEON WIZARD");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 38));
         title.setFill(Color.web("#00D2FF"));
 
@@ -38,7 +38,13 @@ public class MainMenuView extends VBox {
         Button btnExit = createMenuButton("ESCI DAL GIOCO", "#FF4C4C"); // Rosso
         btnExit.setOnAction(e -> onExit.run());
 
-        this.getChildren().addAll(title, subtitle, btnNew, btnLoad, btnExit);
+        // --- FIRMA DELL'AUTORE ---
+        Text creditText = new Text("Created by Lorenzo Magnoni");
+        creditText.setFont(Font.font("Arial", 12));
+        creditText.setFill(Color.web("#555555")); // Grigio discreto ed elegante
+        VBox.setMargin(creditText, new Insets(40, 0, 0, 0)); // Spazio di 40px sotto l'ultimo bottone
+
+        this.getChildren().addAll(title, subtitle, btnNew, btnLoad, btnExit, creditText);
     }
 
     private Button createMenuButton(String text, String colorHex) {
