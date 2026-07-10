@@ -2,10 +2,13 @@ package it.unicam.cs.mpgc.rpg123436.view;
 
 import it.unicam.cs.mpgc.rpg123436.controller.GameController;
 import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
+import it.unicam.cs.mpgc.rpg123436.persistence.GamePersistence;
+import it.unicam.cs.mpgc.rpg123436.persistence.GameSaveData;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -16,6 +19,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 public class DungeonView extends HBox {
 
@@ -51,8 +55,36 @@ public class DungeonView extends HBox {
         this.mapGrid.setHgap(1);
         this.mapGrid.setVgap(1);
 
-        // Ora sopra la mappa c'è SOLO il livello gigante, niente scritte della vita dell'orco
-        this.leftLayout.getChildren().addAll(topStatusText, mapGrid);
+        // --- CREAZIONE PULSANTI IN BASSO A SINISTRA (SOTTO LA MAPPA) ---
+        HBox bottomButtons = new HBox(15);
+        bottomButtons.setAlignment(Pos.CENTER_LEFT);
+        bottomButtons.setPadding(new Insets(8, 0, 0, 0));
+
+        Button btnSave = new Button("💾 SALVA");
+        styleGameButton(btnSave, "#FFD700");
+        btnSave.setFocusTraversable(false); // CRUCIALE: impedisce al bottone di rubare l'input alla tastiera!
+        btnSave.setOnAction(e -> {
+            GameSaveData snapshot = controller.createSaveSnapshot();
+            if (GamePersistence.saveGame(snapshot)) {
+                controller.getCombatLog().add("💾 Partita salvata!");
+                render();
+            }
+        });
+
+        Button btnExit = new Button("🚪 ESCI");
+        styleGameButton(btnExit, "#FF4C4C");
+        btnExit.setFocusTraversable(false); // CRUCIALE: impedisce di bloccare la tastiera!
+        btnExit.setOnAction(e -> {
+            Stage stage = (Stage) this.getScene().getWindow();
+            if (stage.getUserData() instanceof Main) {
+                ((Main) stage.getUserData()).showMainMenu();
+            }
+        });
+
+        bottomButtons.getChildren().addAll(btnSave, btnExit);
+
+        // Ora sopra la mappa c'è SOLO il livello gigante, sotto ci sono i bottoni
+        this.leftLayout.getChildren().addAll(topStatusText, mapGrid, bottomButtons);
 
         // 2. Pannello HUD di destra
         this.hudPanel = new VBox(12); // Spazio verticale ottimizzato
@@ -164,7 +196,7 @@ public class DungeonView extends HBox {
         // AGGIORNAMENTO HUD LATERALE (TUTTO SULLA DESTRA)
         hudPanel.getChildren().clear();
 
-        // 1. Sezione Eroe (Risolto il quadratino rotto su Windows)
+        // 1. Sezione Eroe
         Text statsTitle = new Text("⚔️ STATUS EROE");
         statsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 16)); statsTitle.setFill(Color.web("#00D2FF"));
         Text heroInfo = new Text("HP: " + controller.getHero().getHp() + "/"+ controller.getHero().getMaxHp()+"\nPosizione: [" + heroX + "," + heroY + "]");
@@ -194,5 +226,40 @@ public class DungeonView extends HBox {
             logLine.setFill(Color.GOLD);
             hudPanel.getChildren().add(logLine);
         }
+    }
+
+    private void styleGameButton(Button btn, String colorHex) {
+        btn.setPrefWidth(100);
+        btn.setPrefHeight(30);
+        btn.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        btn.setStyle(
+                "-fx-background-color: #141419; " +
+                        "-fx-text-fill: " + colorHex + "; " +
+                        "-fx-border-color: " + colorHex + "; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 4; " +
+                        "-fx-background-radius: 4; " +
+                        "-fx-cursor: hand;"
+        );
+
+        btn.setOnMouseEntered(e -> btn.setStyle(
+                "-fx-background-color: " + colorHex + "; " +
+                        "-fx-text-fill: #0b0b0d; " +
+                        "-fx-border-color: " + colorHex + "; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 4; " +
+                        "-fx-background-radius: 4; " +
+                        "-fx-cursor: hand;"
+        ));
+
+        btn.setOnMouseExited(e -> btn.setStyle(
+                "-fx-background-color: #141419; " +
+                        "-fx-text-fill: " + colorHex + "; " +
+                        "-fx-border-color: " + colorHex + "; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 4; " +
+                        "-fx-background-radius: 4; " +
+                        "-fx-cursor: hand;"
+        ));
     }
 }
