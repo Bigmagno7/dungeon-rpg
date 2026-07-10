@@ -49,7 +49,7 @@ public class GameController {
 
         // Controllo medikit
         if (map.getGrid()[nextY][nextX] == 'H') {
-            hero.setHp(Math.min(50, hero.getHp() + 5));
+            hero.setHp(Math.min(hero.getMaxHp(), hero.getHp() + 5));
             map.getGrid()[nextY][nextX] = '.';
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
