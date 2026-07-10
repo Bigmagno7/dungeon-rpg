@@ -12,12 +12,15 @@ public class Main extends Application {
 
     private Stage primaryStage;
     private final int width = 750;
-    private final int height = 520;
+    private final int height = 520; // Altezza perfetta per non tagliare la mappa in basso
 
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("Easy Dungeon RPG - Combat & HUD");
+
+        // Salviamo l'istanza del Main dentro lo Stage così la View può richiamare il menu iniziale
+        this.primaryStage.setUserData(this);
 
         // All'avvio mostriamo sempre il Menu Principale
         showMainMenu();
@@ -25,13 +28,13 @@ public class Main extends Application {
     }
 
     /**
-     * Carica e mostra la Schermata Iniziale
+     * Carica e mostra la Schermata Iniziale del Menu
      */
     public void showMainMenu() {
         MainMenuView menuView = new MainMenuView(
-                this::startNewGame,    // Quando clicca Nuova Partita
-                this::loadSavedGame,   // Quando clicca Carica Partita
-                () -> primaryStage.close() // Quando clicca Esci
+                this::startNewGame,    // Azione per Nuova Partita
+                this::loadSavedGame,   // Azione per Carica Partita
+                () -> primaryStage.close() // Azione per Uscire dal gioco
         );
 
         Scene menuScene = new Scene(menuView, width, height);
@@ -39,7 +42,7 @@ public class Main extends Application {
     }
 
     /**
-     * Fila via liscio con una nuova partita da zero
+     * Inizializza una nuova partita da zero (Livello 1)
      */
     private void startNewGame() {
         GameController controller = new GameController();
@@ -47,7 +50,7 @@ public class Main extends Application {
     }
 
     /**
-     * Carica i dati dal file binario e ripristina la sessione
+     * Carica i dati dal file binario tramite il sistema di persistenza
      */
     private void loadSavedGame() {
         GameSaveData savedData = GamePersistence.loadGame();
@@ -61,25 +64,18 @@ public class Main extends Application {
     }
 
     /**
-     * Avvia la partita vera e propria usando la tua struttura originale
+     * Avvia la sessione di gioco vera e propria usando la tua struttura originale
      */
     private void launchGameSession(GameController controller) {
         DungeonView dungeonView = new DungeonView(controller);
         Scene scene = new Scene(dungeonView, width, height);
 
-        // Agganciamo il TUO InputHandler originale senza romperlo
+        // Colleghiamo il tuo InputHandler nativo (WASD + Frecce)
         InputHandler inputHandler = new InputHandler(controller, dungeonView);
         inputHandler.attachToScene(scene);
 
-        // AGGIUNTA DI SICUREZZA: se premi un tasto a gioco finito (Win/Lose), torna al menu
-        scene.setOnKeyPressed(e -> {
-            if (controller.isGameOver() || controller.isGameWon()) {
-                showMainMenu();
-            }
-        });
-
         primaryStage.setScene(scene);
-        dungeonView.render(); // Render iniziale per aggiornare la nebbia/mappa
+        dungeonView.render(); // Render iniziale per stampare la mappa
     }
 
     public static void main(String[] args) {
