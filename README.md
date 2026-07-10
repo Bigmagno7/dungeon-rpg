@@ -1,6 +1,6 @@
 # 📌 Dungeon Wizard 
 
-Gioco di ruolo a turni bidimensionale sviluppato in **Java** come progetto d'esame per il corso di **Metodologie di Programmazione** e **Ingegneria del Software** dell'Università degli Studi di Camerino.
+Gioco di ruolo a turni bidimensionale sviluppato in **Java** come progetto d'esame per il corso di **Metodologie di Programmazione** dell'Università degli Studi di Camerino.
 
 Il giocatore veste i panni di un mago che esplora i livelli di un dungeon fantasy, affronta creature ostili con un sistema di combattimento tattico, raccoglie medikit e gestisce i salvataggi persistenti su file.
 
