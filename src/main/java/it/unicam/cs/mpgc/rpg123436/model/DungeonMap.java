@@ -1,6 +1,10 @@
 package it.unicam.cs.mpgc.rpg123436.model;
 
-public class DungeonMap {
+import java.io.Serializable;
+/**
+ * Rappresenta la mappa.
+ */
+public class DungeonMap implements Serializable {
 
     private final int rows;
     private final int cols;

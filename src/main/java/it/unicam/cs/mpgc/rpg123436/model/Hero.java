@@ -1,9 +1,10 @@
 package it.unicam.cs.mpgc.rpg123436.model;
 
+import java.io.Serializable;
 /**
  * Rappresenta l'eroe controllato dal giocatore.
  */
-public class Hero {
+public class Hero implements Serializable{
 
     private final String name;
     private final int maxHp;

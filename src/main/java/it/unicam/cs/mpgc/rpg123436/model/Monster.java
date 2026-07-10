@@ -1,9 +1,10 @@
 package it.unicam.cs.mpgc.rpg123436.model;
 
+import java.io.Serializable;
 /**
  * Rappresenta un mostro nel dungeon.
  */
-public class Monster {
+public class Monster implements Serializable {
 
     private final String type;
     private int hp;
