@@ -3,6 +3,8 @@ package it.unicam.cs.mpgc.rpg123436.controller;
 import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
 import it.unicam.cs.mpgc.rpg123436.model.Hero;
 import it.unicam.cs.mpgc.rpg123436.model.Monster;
+import it.unicam.cs.mpgc.rpg123436.persistence.GameSaveData;
+import it.unicam.cs.mpgc.rpg123436.persistence.GamePersistence;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -214,4 +216,51 @@ public class GameController {
     public int getCurrentLevel() { return currentLevel; }
     public boolean isGameOver() { return isGameOver; }
     public boolean isGameWon() { return isGameWon; }
+    /**
+     * Crea un'istantanea dei dati attuali del gioco per il salvataggio
+     */
+    public GameSaveData createSaveSnapshot() {
+        return new it.unicam.cs.mpgc.rpg123436.persistence.GameSaveData(
+                this.currentLevel,
+                this.map.getGrid(),
+                this.map.getRows(),
+                this.map.getCols(),
+                this.hero.getX(),
+                this.hero.getY(),
+                this.hero.getHp(),
+                this.monster.getX(),
+                this.monster.getY(),
+                this.monster.getHp(),
+                new java.util.ArrayList<>(this.combatLog)
+        );
+    }
+    /**
+     * Ripristina lo stato del gioco partendo da un salvataggio caricato
+     */
+    public void restoreFromSnapshot(GameSaveData data) {
+        this.currentLevel = data.getCurrentLevel();
+        this.map = new DungeonMap(data.getRows(), data.getCols(), this.currentLevel);
+
+        // Ripristiniamo la griglia esatta (con eventuali medikit già raccolti)
+        for (int r = 0; r < data.getRows(); r++) {
+            System.arraycopy(data.getMapGrid()[r], 0, this.map.getGrid()[r], 0, data.getCols());
+        }
+
+        this.hero.setX(data.getHeroX());
+        this.hero.setY(data.getHeroY());
+        this.hero.setHp(data.getHeroHp());
+
+        // Ricostruiamo il mostro con le statistiche salvate
+        int monsterMaxHp = 10 + (this.currentLevel * 10);
+        int monsterDmg = 4 + this.currentLevel;
+        this.monster = new Monster("Orco Lvl " + this.currentLevel, monsterMaxHp, monsterDmg, data.getMonsterX(), data.getMonsterY());
+        this.monster.setHp(data.getMonsterHp());
+
+        this.combatLog.clear();
+        this.combatLog.addAll(data.getCombatLog());
+        this.combatLog.add("✨ Partita caricata con successo!");
+
+        this.isGameOver = false;
+        this.isGameWon = false;
+    }
 }
