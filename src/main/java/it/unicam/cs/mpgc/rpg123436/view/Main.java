@@ -42,11 +42,20 @@ public class Main extends Application {
     }
 
     /**
-     * Inizializza una nuova partita da zero (Livello 1)
+        Inizializza una nuova partita da zero (Livello 1)
+        e
+        mostra la guida di gioco prima di far partire una nuova partita
      */
     private void startNewGame() {
         GameController controller = new GameController();
-        launchGameSession(controller);
+
+        // Invece di lanciare subito il gioco, carichiamo la vista delle istruzioni
+        InstructionsView instructionsView = new InstructionsView(() -> {
+            launchGameSession(controller); // Questo parte quando clicchi "INIZIA L'AVVENTURA"
+        });
+
+        Scene instructionsScene = new Scene(instructionsView, width, height);
+        primaryStage.setScene(instructionsScene);
     }
 
     /**
