@@ -1,10 +1,17 @@
 package it.unicam.cs.mpgc.rpg123436.model;
 
 import java.io.Serializable;
+
 /**
  * Rappresenta l'eroe controllato dal giocatore.
+ *
+ * La classe appartiene al Model e contiene lo stato del personaggio
+ * principale: nome, punti vita e posizione all'interno della griglia.
+ *
+ * Implementa Serializable per permettere il salvataggio e il ripristino
+ * dello stato della partita.
  */
-public class Hero implements Serializable{
+public class Hero implements Serializable {
 
     private final String name;
     private final int maxHp;
@@ -24,7 +31,6 @@ public class Hero implements Serializable{
         this.y = startY;
     }
 
-    // --- GETTER ---
     public String getName() {
         return name;
     }
@@ -41,7 +47,6 @@ public class Hero implements Serializable{
         return y;
     }
 
-    // --- SETTER ---
     public void setHp(int hp) {
         this.hp = hp;
     }

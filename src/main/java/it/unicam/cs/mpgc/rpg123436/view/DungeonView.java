@@ -21,8 +21,17 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+/**
+ * Rappresenta la schermata principale del dungeon.
+ *
+ * Gestisce la visualizzazione grafica del gioco tramite JavaFX,
+ * mostrando la mappa, il personaggio, i nemici, lo stato della partita
+ * e il diario degli eventi.
+ *
+ * Comunica con il GameController per ottenere lo stato corrente
+ * del gioco e aggiornare la rappresentazione grafica.
+ */
 public class DungeonView extends HBox {
-
     private final GameController controller;
     private final int tileSize = 40;
 
@@ -97,7 +106,10 @@ public class DungeonView extends HBox {
         generateTextures();
         render();
     }
-
+    /**
+     * Genera le immagini utilizzate per rappresentare
+     * muri, terreno, porta, oggetti e personaggi del dungeon.
+     */
     private void generateTextures() {
         Canvas canvasWall = new Canvas(tileSize, tileSize);
         GraphicsContext gc = canvasWall.getGraphicsContext2D();
@@ -134,7 +146,12 @@ public class DungeonView extends HBox {
         heroImg = new Image("https://img.icons8.com/color/40/wizard.png", tileSize, tileSize, true, true);
         monsterImg = new Image("https://img.icons8.com/color/40/orc.png", tileSize, tileSize, true, true);
     }
-
+    /**
+     * Aggiorna completamente la schermata di gioco.
+     *
+     * Ridisegna la mappa, aggiorna la posizione di eroe e mostro
+     * e aggiorna le informazioni mostrate nell'HUD.
+     */
     public void render() {
         int currentLevel = controller.getCurrentLevel();
         int monsterHp = controller.getMonster().getHp();
@@ -228,8 +245,10 @@ public class DungeonView extends HBox {
         }
     }
 
-    private void styleGameButton(Button btn, String colorHex) {
-        btn.setPrefWidth(100);
+    /**
+     * Applica lo stile grafico ai pulsanti dell'interfaccia.
+     */
+    private void styleGameButton(Button btn, String colorHex) {        btn.setPrefWidth(100);
         btn.setPrefHeight(30);
         btn.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         btn.setStyle(

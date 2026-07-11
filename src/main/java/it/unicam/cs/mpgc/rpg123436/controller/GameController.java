@@ -4,10 +4,19 @@ import it.unicam.cs.mpgc.rpg123436.model.DungeonMap;
 import it.unicam.cs.mpgc.rpg123436.model.Hero;
 import it.unicam.cs.mpgc.rpg123436.model.Monster;
 import it.unicam.cs.mpgc.rpg123436.persistence.GameSaveData;
-import it.unicam.cs.mpgc.rpg123436.persistence.GamePersistence;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controller principale dell'applicazione.
+ *
+ * Gestisce il ciclo di gioco coordinando le interazioni tra il modello
+ * (Hero, Monster, DungeonMap) e la logica applicativa.
+ *
+ * Si occupa della gestione dei movimenti del giocatore, dei combattimenti,
+ * della progressione dei livelli, del comportamento dei nemici tramite BFS
+ * e delle operazioni di salvataggio e caricamento dello stato di gioco.
+ */
 public class GameController {
 
     private DungeonMap map;
@@ -19,6 +28,10 @@ public class GameController {
     private boolean isGameOver = false;
     private boolean isGameWon = false;
 
+    /**
+     * Inizializza una nuova partita creando la mappa iniziale,
+     * il personaggio principale e il primo nemico del dungeon.
+     */
     public GameController() {
         this.map = new DungeonMap(10, 10, currentLevel);
         this.hero = new Hero("Mago", 1, 1);
@@ -26,35 +39,42 @@ public class GameController {
         this.monster = new Monster("Orco", 30, 6, 7, 2);
         combatLog.add("Benvenuto! Livello " + currentLevel + " - HP: 50");
     }
-
+    /**
+     * Gestisce il movimento dell'eroe all'interno della mappa.
+     *
+     * Il metodo controlla:
+     * - collisioni con ostacoli;
+     * - combattimento con i nemici;
+     * - raccolta dei medikit;
+     * - cambio livello;
+     * - aggiornamento del turno del mostro.
+     *
+     * @param deltaX variazione orizzontale della posizione
+     * @param deltaY variazione verticale della posizione
+     * @return true se il movimento viene eseguito correttamente
+     */
     public boolean handleHeroMovement(int deltaX, int deltaY) {
         if (isGameOver || isGameWon) return false;
 
-        // 1. Calcoliamo DOVE l'eroe vorrebbe andare
         int nextX = hero.getX() + deltaX;
         int nextY = hero.getY() + deltaY;
 
-        // 2. CONTROLLO ATTACCO IMMEDIATO: Se l'orco è vivo ed è esattamente nella casella dove sto andando, lo MENO subito!
         if (monster.getHp() > 0 && nextX == monster.getX() && nextY == monster.getY()) {
             executeCombatTurn();
-            return true; // Turno finito! Ho attaccato io per primo, l'eroe resta fermo e il mostro non si muove!
+            return true;
         }
 
-        // 3. Blocco sui muri (se non sto attaccando)
         if (map.getGrid()[nextY][nextX] == '#') return false;
 
-        // 4. Se la via è libera e non sto attaccando, muovo l'eroe
         hero.setX(nextX);
         hero.setY(nextY);
 
-        // Controllo medikit
         if (map.getGrid()[nextY][nextX] == 'H') {
             hero.setHp(Math.min(hero.getMaxHp(), hero.getHp() + 5));
             map.getGrid()[nextY][nextX] = '.';
             logMessage("❤️ Raccolto Medikit! +5 HP");
         }
 
-        // Controllo porta livello successivo
         if (map.getGrid()[nextY][nextX] == 'E') {
             if (currentLevel == 5) {
                 isGameWon = true;
@@ -62,17 +82,21 @@ public class GameController {
             } else {
                 nextLevel();
             }
-            return true; // CRUCIALE: Ferma il turno qui! Evita che il nuovo orco si muova nel vecchio turno!
+            return true;
         }
 
-        // 5. SOLO SE NON C'È STATO COMBATTIMENTO, il mostro fa il suo passo verso di te
         if (monster.getHp() > 0) {
             moveMonsterWithCollision();
         }
 
         return true;
     }
-
+    /**
+     * Gestisce un turno di combattimento tra eroe e mostro.
+     *
+     * L'eroe attacca per primo e, se il nemico sopravvive,
+     * viene eseguito il contrattacco del mostro.
+     */
     private void executeCombatTurn() {
         if (monster.getHp() <= 0) return;
 
@@ -89,7 +113,10 @@ public class GameController {
         // Se sopravvive, contrattacca subito
         executeMonsterAttack();
     }
-
+    /**
+     * Applica il danno del mostro all'eroe e verifica
+     * l'eventuale conclusione della partita.
+     */
     private void executeMonsterAttack() {
         if (monster.getHp() <= 0) return;
 
@@ -104,8 +131,11 @@ public class GameController {
         }
     }
     /**
-     * Muove il mostro verso l'eroe con la BFS.
-     * Se il mostro raggiunge l'eroe, si ferma davanti a lui SENZA attaccare preventivamente!
+     * Calcola il movimento del mostro verso l'eroe utilizzando
+     * l'algoritmo Breadth First Search (BFS).
+     *
+     * L'algoritmo permette al nemico di trovare il percorso minimo
+     * evitando muri e ostacoli presenti nella mappa.
      */
     private void moveMonsterWithCollision() {
         int startX = monster.getX();
@@ -113,7 +143,6 @@ public class GameController {
         int targetX = hero.getX();
         int targetY = hero.getY();
 
-        // Se sono già adiacenti o sopra, il mostro non si muove, aspetta solo di essere menato o contrattacca
         if (Math.abs(startX - targetX) + Math.abs(startY - targetY) <= 1) {
             return;
         }
@@ -152,8 +181,7 @@ public class GameController {
                 p = p.parent;
             }
 
-            // BLOCCO DI SICUREZZA ASSOLUTO: Se il prossimo passo della BFS coincide con l'eroe,
-            // il mostro RESTA FERMO dove si trova. Non gli sale sopra MAI.
+
             if (p.x == hero.getX() && p.y == hero.getY()) {
                 return; // Non ti muovere, resta a distanza 1!
             } else {
@@ -162,6 +190,12 @@ public class GameController {
             }
         }
     }
+    /**
+     * Gestisce il passaggio al livello successivo.
+     *
+     * Aggiorna la mappa, incrementa la difficoltà del mostro
+     * e ricrea l'ambiente di gioco.
+     */
     private void nextLevel() {
         currentLevel++;
         combatLog.clear();
@@ -174,13 +208,12 @@ public class GameController {
         int newHp = 10 + (currentLevel * 10);
         int newDmg = 4 + currentLevel;
 
-        // COORDINATE BLINDATE: distanze matematicamente dispari da [1,1] per evitare la sovrapposizione nello stesso frame!
         int spawnX = 7;
-        int spawnY = 2; // Livello 1 standard
+        int spawnY = 2;
 
         if (currentLevel == 2) {
             spawnX = 7;
-            spawnY = 8; // Distanza dispari garantita
+            spawnY = 8;
         }
         else if (currentLevel == 3) {
             spawnX = 6;
@@ -188,7 +221,7 @@ public class GameController {
         }
         else if (currentLevel == 4) {
             spawnX = 7;
-            spawnY = 6; // Modificato per evitare il bug del livello 4!
+            spawnY = 6;
         }
         else if (currentLevel == 5) {
             spawnX = 7;
@@ -217,7 +250,10 @@ public class GameController {
     public boolean isGameOver() { return isGameOver; }
     public boolean isGameWon() { return isGameWon; }
     /**
-     * Crea un'istantanea dei dati attuali del gioco per il salvataggio
+     * Crea una copia dello stato corrente della partita
+     * utilizzata per il sistema di persistenza.
+     *
+     * @return snapshot serializzabile del gioco
      */
     public GameSaveData createSaveSnapshot() {
         return new it.unicam.cs.mpgc.rpg123436.persistence.GameSaveData(
@@ -235,13 +271,15 @@ public class GameController {
         );
     }
     /**
-     * Ripristina lo stato del gioco partendo da un salvataggio caricato
+     * Ripristina lo stato della partita partendo
+     * dai dati contenuti in un salvataggio precedente.
+     *
+     * @param data dati salvati della partita
      */
     public void restoreFromSnapshot(GameSaveData data) {
         this.currentLevel = data.getCurrentLevel();
         this.map = new DungeonMap(data.getRows(), data.getCols(), this.currentLevel);
 
-        // Ripristiniamo la griglia esatta (con eventuali medikit già raccolti)
         for (int r = 0; r < data.getRows(); r++) {
             System.arraycopy(data.getMapGrid()[r], 0, this.map.getGrid()[r], 0, data.getCols());
         }
@@ -250,7 +288,6 @@ public class GameController {
         this.hero.setY(data.getHeroY());
         this.hero.setHp(data.getHeroHp());
 
-        // Ricostruiamo il mostro con le statistiche salvate
         int monsterMaxHp = 10 + (this.currentLevel * 10);
         int monsterDmg = 4 + this.currentLevel;
         this.monster = new Monster("Orco Lvl " + this.currentLevel, monsterMaxHp, monsterDmg, data.getMonsterX(), data.getMonsterY());

@@ -9,8 +9,22 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
+/**
+ * Rappresenta il menu principale del gioco.
+ *
+ * Permette al giocatore di iniziare una nuova partita,
+ * caricare un salvataggio precedente oppure uscire
+ * dall'applicazione.
+ */
 public class MainMenuView extends VBox {
 
+    /**
+     * Costruisce la schermata del menu principale.
+     *
+     * @param onNewGame azione eseguita per iniziare una nuova partita
+     * @param onLoadGame azione eseguita per caricare un salvataggio
+     * @param onExit azione eseguita per chiudere il gioco
+     */
     public MainMenuView(Runnable onNewGame, Runnable onLoadGame, Runnable onExit) {
         this.setSpacing(20);
         this.setPadding(new Insets(60, 50, 60, 50));
@@ -47,6 +61,16 @@ public class MainMenuView extends VBox {
         this.getChildren().addAll(title, subtitle, btnNew, btnLoad, btnExit, creditText);
     }
 
+    /**
+     * Crea un pulsante personalizzato per il menu.
+     *
+     * Applica lo stile grafico e l'effetto di evidenziazione
+     * quando il cursore passa sopra il pulsante.
+     *
+     * @param text testo visualizzato sul pulsante
+     * @param colorHex colore principale del pulsante
+     * @return pulsante configurato
+     */
     private Button createMenuButton(String text, String colorHex) {
         Button btn = new Button(text);
         btn.setPrefWidth(260);
@@ -62,7 +86,6 @@ public class MainMenuView extends VBox {
                         "-fx-cursor: hand;"
         );
 
-        // Effetto hover base via codice per renderlo super responsive al passaggio del mouse
         btn.setOnMouseEntered(e -> btn.setStyle(
                 "-fx-background-color: " + colorHex + "; " +
                         "-fx-text-fill: #0b0b0d; " +

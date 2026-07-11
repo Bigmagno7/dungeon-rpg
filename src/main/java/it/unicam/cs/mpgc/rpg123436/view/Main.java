@@ -8,6 +8,14 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * Gestisce l'avvio e il ciclo di vita dell'interfaccia grafica JavaFX.
+ *
+ * Si occupa della creazione della finestra principale,
+ * della gestione del menu iniziale, dell'avvio di nuove partite,
+ * del caricamento dei salvataggi e del collegamento tra
+ * controller, viste e gestione degli input.
+ */
 public class Main extends Application {
 
     private Stage primaryStage;
@@ -59,7 +67,8 @@ public class Main extends Application {
     }
 
     /**
-     * Carica i dati dal file binario tramite il sistema di persistenza
+     * Carica una partita precedentemente salvata
+     * tramite il sistema di persistenza.
      */
     private void loadSavedGame() {
         GameSaveData savedData = GamePersistence.loadGame();
@@ -73,7 +82,10 @@ public class Main extends Application {
     }
 
     /**
-     * Avvia la sessione di gioco vera e propria usando la tua struttura originale
+     * Inizializza la sessione di gioco collegando
+     * controller, interfaccia grafica e gestione degli input.
+     *
+     * @param controller controller della partita corrente
      */
     private void launchGameSession(GameController controller) {
         DungeonView dungeonView = new DungeonView(controller);
@@ -86,7 +98,11 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         dungeonView.render(); // Render iniziale per stampare la mappa
     }
-
+    /**
+     * Metodo di ingresso dell'applicazione JavaFX.
+     *
+     * @param args parametri della riga di comando
+     */
     public static void main(String[] args) {
         launch(args);
     }

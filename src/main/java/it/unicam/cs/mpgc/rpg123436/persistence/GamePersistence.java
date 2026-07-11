@@ -2,12 +2,22 @@ package it.unicam.cs.mpgc.rpg123436.persistence;
 
 import java.io.*;
 
+/**
+ * Gestisce il salvataggio e il caricamento dello stato della partita.
+ *
+ * Utilizza la serializzazione nativa di Java per scrivere e leggere
+ * oggetti GameSaveData sotto forma di file binario.
+ */
 public class GamePersistence {
 
     private static final String SAVE_FILE_NAME = "dungeon_save.dat";
 
     /**
-     * Scrive i dati di salvataggio su file binarizzato
+     * Salva lo stato corrente della partita su file.
+     *
+     * @param saveData dati della partita da salvare
+     * @return true se il salvataggio è completato correttamente,
+     *         false in caso di errore
      */
     public static boolean saveGame(GameSaveData saveData) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(SAVE_FILE_NAME))) {
@@ -22,7 +32,10 @@ public class GamePersistence {
     }
 
     /**
-     * Legge il file di salvataggio se esiste
+     * Carica una partita precedentemente salvata.
+     *
+     * @return dati salvati della partita oppure null
+     *         se il file non esiste o il caricamento fallisce
      */
     public static GameSaveData loadGame() {
         File saveFile = new File(SAVE_FILE_NAME);

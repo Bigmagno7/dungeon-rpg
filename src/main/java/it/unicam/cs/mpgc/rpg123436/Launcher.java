@@ -3,10 +3,11 @@ package it.unicam.cs.mpgc.rpg123436;
 import it.unicam.cs.mpgc.rpg123436.view.Main;
 
 /**
- * Classe di avvio (Launcher) principale del progetto.
- * Questa classe non estende 'Application' di JavaFX per evitare problemi
- * di configurazione dei moduli (Java Platform Module System) a runtime,
- * garantendo la massima compatibilità dell'eseguibile su qualsiasi IDE.
+ * Classe di avvio principale del progetto.
+ *
+ * Delega l'avvio dell'applicazione JavaFX alla classe Main,
+ * separando il punto di ingresso del programma dalla gestione
+ * della finestra grafica.
  */
 public class Launcher {
     public static void main(String[] args) {

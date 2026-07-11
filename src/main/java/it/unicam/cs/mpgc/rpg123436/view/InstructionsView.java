@@ -3,7 +3,6 @@ package it.unicam.cs.mpgc.rpg123436.view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -11,8 +10,20 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+/**
+ * Rappresenta la schermata delle istruzioni di gioco.
+ *
+ * Mostra al giocatore i comandi, gli elementi del dungeon
+ * e permette di iniziare una nuova partita.
+ */
 public class InstructionsView extends VBox {
 
+    /**
+     * Costruisce la schermata delle istruzioni.
+     *
+     * @param onStartGame azione eseguita quando il giocatore
+     *                    avvia una nuova partita
+     */
     public InstructionsView(Runnable onStartGame) {
         this.setSpacing(20);
         this.setPadding(new Insets(35));
@@ -112,7 +123,12 @@ public class InstructionsView extends VBox {
 
         this.getChildren().addAll(title, commandsBox, elementsBox, btnStart);
     }
-
+    /**
+     * Applica lo stile grafico alle sezioni della guida.
+     *
+     * @param box contenitore della sezione
+     * @param titleText titolo della sezione
+     */
     private void initSectionStyle(VBox box, String titleText) {
         box.setAlignment(Pos.CENTER_LEFT);
         box.setMaxWidth(580);
