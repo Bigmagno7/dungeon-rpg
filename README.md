@@ -150,6 +150,7 @@ Esempi:
 
 Nella fase finale sono stati adottati prefissi standard:
 
+- **fix:** correzione al codice
 - **feat:** nuove funzionalità
 - **refactor:** modifiche strutturali senza cambiamenti funzionali
 - **style:** miglioramenti grafici e pulizia del codice
